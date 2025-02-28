@@ -1,0 +1,18 @@
+# Next.js build output
+/.next
+out/
+build/
+
+# Dependencies
+/node_modules
+
+package-lock.json
+
+# Environment variables
+.env
+
+# Linting
+eslintcache
+
+# TypeScript
+*.tsbuildinfo
