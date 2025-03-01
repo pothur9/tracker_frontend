@@ -279,7 +279,7 @@ export function SeatSelection({
           {isOneStop ? (
             <>
               <div
-                className="relative  flex items-center justify-center p-6 "
+                className="relative flex items-center justify-center p-6"
                 style={{ width: "450px" }}
               >
                 {/* Left Arrow */}
@@ -306,9 +306,11 @@ export function SeatSelection({
                   <div className="min-w-[15vw] bg-gray-100 shadow-md p-6 rounded-lg">
                     {renderSeatGrid(firstFlightSeats, "Flight 1 Seats")}
                   </div>
-                  <div className="min-w-[15vw] bg-gray-100 shadow-md p-6 rounded-lg">
-                    {renderSeatGrid(secondFlightSeats, "Flight 2 Seats")}
-                  </div>
+                  {secondFlightSeats.length > 0 && ( // Check if secondFlightSeats has data
+                    <div className="min-w-[15vw] bg-gray-100 shadow-md p-6 rounded-lg">
+                      {renderSeatGrid(secondFlightSeats, "Flight 2 Seats")}
+                    </div>
+                  )}
                 </div>
 
                 {/* Right Arrow */}

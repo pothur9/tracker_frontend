@@ -411,7 +411,7 @@ console.log("Total Amount:", calculateTotalAmount());
   ?.FareRules || [];
   
   const hasMultipleFareRules1 = isonestop.length > 1;
-  console.log("a000000000000000000000000", hasMultipleFareRules);
+  console.log( hasMultipleFareRules);
 
   return (
     <main className="min-h-screen bg-gray-50">

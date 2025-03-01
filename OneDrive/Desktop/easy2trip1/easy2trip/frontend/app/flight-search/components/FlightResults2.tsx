@@ -427,6 +427,7 @@ export default function FlightResults2({
             </div>
           </Card>
         ))}
+        
 
         {sortedFlights.length === 0 && (
           <Card className="p-6 text-center">
