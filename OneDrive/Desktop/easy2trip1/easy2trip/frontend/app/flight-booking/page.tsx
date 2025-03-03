@@ -91,10 +91,7 @@ const calculateTotalAmount = () => {
   return baseFare + seatTotal + addOnTotal;
 };
 
-// Debugging: Check what is stored in localStorage
-console.log("Stored seatprice:", localStorage.getItem("seatprice"));
-console.log("Calculated Seat Price:", calculateSeatPrice());
-console.log("Total Amount:", calculateTotalAmount());
+
 
 
 
