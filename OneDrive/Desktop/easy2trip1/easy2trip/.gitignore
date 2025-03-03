@@ -1,0 +1,15 @@
+# Ignore system files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Ignore system directories
+node_modules/
+npm-cache/
+.vscode/
+.idea/
+cache/
+logs/
+firebase-app.js
+.env
