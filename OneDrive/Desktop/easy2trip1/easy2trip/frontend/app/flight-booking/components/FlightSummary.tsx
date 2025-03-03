@@ -107,7 +107,7 @@ const FlightDetails = ({ flightData }: { flightData: Flight }) => {
       {flightData.Segments.map((segmentGroup, index) => (
         <div key={index} className="mb-4">
           <div className="text-lg font-bold text-blue-600">
-            Segment {index + 1}
+           Flight {index + 1}
           </div>
           {segmentGroup.map((segment, segIndex) => (
             <div key={segIndex} className="mb-4 border p-4 rounded">
