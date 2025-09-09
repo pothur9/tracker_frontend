@@ -1,0 +1,524 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+  MERGED GLOBAL CSS
+  - This file carefully merges two previously separate global stylesheets.
+  - Variables from the first sheet are kept as primary (suffix "-a").
+  - Variables from the second sheet are preserved as backup (suffix "-b").
+  - Canonical variables (without suffix) point to the primary values and fall back to backups.
+  - This approach keeps both code paths working while providing one single source-of-truth.
+*/
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /**/
+  --background: oklch(1 0 0); /* White background */
+  --foreground: oklch(0.35 0 0); /* Dark gray text (#4b5563) */
+  --card: oklch(0.98 0 0); /* Light gray card background (#f9fafb) */
+  --card-foreground: oklch(0.35 0 0); /* Dark gray text for cards */
+  --popover: oklch(1 0 0); /* White popover background */
+  --popover-foreground: oklch(0.35 0 0); /* Dark gray popover text */
+  --primary: oklch(0.55 0.15 200); /* Cyan primary color (#0891b2) */
+  --primary-foreground: oklch(1 0 0); /* White text on primary */
+  --secondary: oklch(0.65 0.18 35); /* Orange accent (#f97316) */
+  --secondary-foreground: oklch(1 0 0); /* White text on secondary */
+  --muted: oklch(0.98 0 0); /* Light gray muted background */
+  --muted-foreground: oklch(0.35 0 0); /* Dark gray muted text */
+  --accent: oklch(0.65 0.18 35); /* Orange accent color */
+  --accent-foreground: oklch(1 0 0); /* White text on accent */
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.92 0 0); /* Light border (#e5e7eb) */
+  --input: oklch(0.98 0 0); /* Light input background */
+  --ring: oklch(0.55 0.15 200 / 0.5); /* Primary color with opacity for focus */
+  --chart-1: oklch(0.65 0.18 35); /* Orange */
+  --chart-2: oklch(0.55 0.15 200); /* Cyan */
+  --chart-3: oklch(0.577 0.245 27.325); /* Red */
+  --chart-4: oklch(0.35 0 0); /* Dark gray */
+  --chart-5: oklch(0.98 0.02 15); /* Light pink */
+  --radius: 0.5rem; /* 8px radius for premium feel */
+  --sidebar: oklch(0.98 0 0);
+  --sidebar-foreground: oklch(0.35 0 0);
+  --sidebar-primary: oklch(0.55 0.15 200);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.65 0.18 35);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.55 0.15 200 / 0.5);
+
+  /* --- Primary (a) values (from first file) --- */
+  --background-a: #ffffff; /* neutral */
+  --foreground-a: #0b1f3b; /* deep navy for headings/body */
+  --card-a: #ffffff;
+  /* --card-foreground-a: #0b1f3b; */
+  --popover-a: #ffffff;
+  --popover-foreground-a: #0b1f3b;
+
+  --primary-a: #0a3a82; /* darker blue for CTAs and hero overlay */
+  --primary-foreground-a: #ffffff;
+
+  --secondary-a: #e6effc; /* slightly cooler light-blue surface */
+  --secondary-foreground-a: #0b1f3b;
+
+  --muted-a: #e6effc;
+  --muted-foreground-a: #94a3b8; /* refined soft gray */
+
+  --accent-a: #0a3a82;
+  --accent-foreground-a: #ffffff;
+
+  --destructive-a: #f44336;
+  --destructive-foreground-a: #ffffff;
+
+  --border-a: #d9e3f5; /* softer, cooler border */
+  --input-a: #ffffff;
+  --ring-a: rgba(10, 58, 130, 0.42);
+
+  --radius-a: 0.5rem;
+  --sidebar-a: #ffffff;
+  --sidebar-foreground-a: #0b1f3b;
+  --sidebar-primary-a: #0a3a82;
+  --sidebar-primary-foreground-a: #ffffff;
+  --sidebar-accent-a: #0b1f3b;
+  --sidebar-accent-foreground-a: #ffffff;
+  --sidebar-border-a: #d9e3f5;
+  --sidebar-ring-a: rgba(10, 58, 130, 0.42);
+  --gold-a: #f5b301;
+  --gold-foreground-a: #0b1f3b;
+  --gold-soft-a: #fff7cc;
+
+  /* chart fallbacks (defined later if needed) */
+  --chart-1-a: #1e40af;
+  --chart-2-a: #3b82f6;
+  --chart-3-a: #f44336;
+  --chart-4-a: #0b1f3b;
+  --chart-5-a: #fbcfe8;
+
+  /* --- Backup (b) values (from second file using oklch / alt tokens) --- */
+  --background-b: oklch(1 0 0); /* white */
+  --foreground-b: oklch(0.35 0 0); /* dark gray */
+  --card-b: oklch(0.98 0 0);
+  /* --card-foreground-b: oklch(0.35 0 0); */
+  --popover-b: oklch(1 0 0);
+  --popover-foreground-b: oklch(0.35 0 0);
+
+  --primary-b: oklch(0.55 0.15 200); /* cyan-ish (alt) */
+  --primary-foreground-b: oklch(1 0 0);
+
+  --secondary-b: oklch(0.65 0.18 35);
+  --secondary-foreground-b: oklch(1 0 0);
+
+  --muted-b: oklch(0.98 0 0);
+  --muted-foreground-b: oklch(0.35 0 0);
+
+  --accent-b: oklch(0.65 0.18 35);
+  --accent-foreground-b: oklch(1 0 0);
+
+  --destructive-b: oklch(0.577 0.245 27.325);
+  --destructive-foreground-b: oklch(1 0 0);
+
+  --border-b: oklch(0.92 0 0);
+  --input-b: oklch(0.98 0 0);
+  --ring-b: oklch(0.55 0.15 200 / 0.5);
+
+  --radius-b: 0.5rem;
+  --sidebar-b: oklch(0.98 0 0);
+  --sidebar-foreground-b: oklch(0.35 0 0);
+  --sidebar-primary-b: oklch(0.55 0.15 200);
+  --sidebar-primary-foreground-b: oklch(1 0 0);
+  --sidebar-accent-b: oklch(0.65 0.18 35);
+  --sidebar-accent-foreground-b: oklch(1 0 0);
+  --sidebar-border-b: oklch(0.92 0 0);
+  --sidebar-ring-b: oklch(0.55 0.15 200 / 0.5);
+
+  --gold-b: oklch(0.95 0.1 80); /* fallback crafted value */
+  --gold-foreground-b: oklch(0.35 0 0);
+  --gold-soft-b: oklch(0.99 0.03 60);
+
+  --chart-1-b: oklch(0.65 0.18 35);
+  --chart-2-b: oklch(0.55 0.15 200);
+  --chart-3-b: oklch(0.577 0.245 27.325);
+  --chart-4-b: oklch(0.35 0 0);
+  --chart-5-b: oklch(0.98 0.02 15);
+
+  /* --- Canonical variables (pick primary-a with fallback to b) --- */
+  --background: var(--background-a, var(--background-b));
+  --foreground: var(--foreground-a, var(--foreground-b));
+  /* --card: var(--card-a, var(--card-b)); */
+  /* --card-foreground: var(--card-foreground-a, var(--card-foreground-b)); */
+  --popover: var(--popover-a, var(--popover-b));
+  --popover-foreground: var(
+    --popover-foreground-a,
+    var(--popover-foreground-b)
+  );
+
+  --primary: var(--primary-a, var(--primary-b));
+  --primary-foreground: var(
+    --primary-foreground-a,
+    var(--primary-foreground-b)
+  );
+
+  --secondary: var(--secondary-a, var(--secondary-b));
+  --secondary-foreground: var(
+    --secondary-foreground-a,
+    var(--secondary-foreground-b)
+  );
+
+  --muted: var(--muted-a, var(--muted-b));
+  /* --muted-foreground: var(--muted-foreground-a, var(--muted-foreground-b)); */
+
+  --accent: var(--accent-a, var(--accent-b));
+  --accent-foreground: var(--accent-foreground-a, var(--accent-foreground-b));
+
+  --destructive: var(--destructive-a, var(--destructive-b));
+  --destructive-foreground: var(
+    --destructive-foreground-a,
+    var(--destructive-foreground-b)
+  );
+
+  --border: var(--border-a, var(--border-b));
+  --input: var(--input-a, var(--input-b));
+  --ring: var(--ring-a, var(--ring-b));
+  --radius: var(--radius-a, var(--radius-b));
+
+  --sidebar: var(--sidebar-a, var(--sidebar-b));
+  --sidebar-foreground: var(
+    --sidebar-foreground-a,
+    var(--sidebar-foreground-b)
+  );
+  --sidebar-primary: var(--sidebar-primary-a, var(--sidebar-primary-b));
+  --sidebar-primary-foreground: var(
+    --sidebar-primary-foreground-a,
+    var(--sidebar-primary-foreground-b)
+  );
+  --sidebar-accent: var(--sidebar-accent-a, var(--sidebar-accent-b));
+  --sidebar-accent-foreground: var(
+    --sidebar-accent-foreground-a,
+    var(--sidebar-accent-foreground-b)
+  );
+  --sidebar-border: var(--sidebar-border-a, var(--sidebar-border-b));
+  --sidebar-ring: var(--sidebar-ring-a, var(--sidebar-ring-b));
+
+  --gold: var(--gold-a, var(--gold-b));
+  --gold-foreground: var(--gold-foreground-a, var(--gold-foreground-b));
+  --gold-soft: var(--gold-soft-a, var(--gold-soft-b));
+
+  --color-chart-1: var(--chart-1-a, var(--chart-1-b));
+  --color-chart-2: var(--chart-2-a, var(--chart-2-b));
+  --color-chart-3: var(--chart-3-a, var(--chart-3-b));
+  --color-chart-4: var(--chart-4-a, var(--chart-4-b));
+  --color-chart-5: var(--chart-5-a, var(--chart-5-b));
+
+  /* Fonts: preserve both named fonts and choose a canonical fallback order */
+  --font-manrope: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial;
+  --font-geist-sans: "Geist Sans", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto;
+  --font-geist-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    "Roboto Mono";
+  --font-sans: var(--font-manrope, var(--font-geist-sans));
+}
+
+/* Dark mode canonical mapping: keep both dark variants, then set canonical values */
+.dark {
+  --background-a: #0a1630; /* very deep navy */
+  --foreground-a: #ffffff;
+  --card-a: #0d1f45;
+  --card-foreground-a: #ffffff;
+  --popover-a: #0d1f45;
+  --popover-foreground-a: #ffffff;
+
+  --primary-a: #0a3a82;
+  --primary-foreground-a: #ffffff;
+
+  --secondary-a: #0e2349;
+  --secondary-foreground-a: #ffffff;
+
+  --muted-a: #0a1630;
+  --muted-foreground-a: #cbd5e1;
+
+  --accent-a: #0a3a82;
+  --accent-foreground-a: #ffffff;
+
+  --border-a: #1a2f59;
+  --input-a: #0d1f45;
+  --ring-a: rgba(10, 58, 130, 0.5);
+
+  /* also keep b variants for dark to ensure availability */
+  --background-b: oklch(0.145 0 0);
+  --foreground-b: oklch(0.985 0 0);
+  --card-b: oklch(0.145 0 0);
+  --card-foreground-b: oklch(0.985 0 0);
+
+  --primary-b: oklch(0.65 0.15 200);
+  --primary-foreground-b: oklch(0.145 0 0);
+
+  --muted-b: oklch(0.269 0 0);
+  --muted-foreground-b: oklch(0.708 0 0);
+
+  /* Recompute canonical variables for dark mode (these pick the a values) */
+  --background: var(--background-a, var(--background-b));
+  --foreground: var(--foreground-a, var(--foreground-b));
+  /* --card: var(--card-a, var(--card-b)); */
+  /* --card-foreground: var(--card-foreground-a, var(--card-foreground-b)); */
+  --primary: var(--primary-a, var(--primary-b));
+  --primary-foreground: var(
+    --primary-foreground-a,
+    var(--primary-foreground-b)
+  );
+  --secondary: var(--secondary-a, var(--secondary-b));
+  --muted: var(--muted-a, var(--muted-b));
+  --border: var(--border-a, var(--border-b));
+  --input: var(--input-a, var(--input-b));
+  --ring: var(--ring-a, var(--ring-b));
+}
+
+/* Theme inline: canonical tokens used by components */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--color-chart-1, var(--color-chart-1));
+  --color-chart-2: var(--color-chart-2, var(--color-chart-2));
+  --color-chart-3: var(--color-chart-3, var(--color-chart-3));
+  --color-chart-4: var(--color-chart-4, var(--color-chart-4));
+  --color-chart-5: var(--color-chart-5, var(--color-chart-5));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --font-sans: var(--font-sans);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-weight: 500; /* slightly bolder default body for premium look */
+    font-family: var(--font-sans);
+  }
+}
+
+@layer utilities {
+  /* Layout helpers */
+  .section {
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+  @media (min-width: 768px) {
+    .section {
+      padding-top: 4rem;
+      padding-bottom: 4rem;
+    }
+  }
+
+  .section-title {
+    font-size: clamp(1.875rem, 2.5vw, 2.25rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--color-primary);
+    letter-spacing: -0.01em;
+  }
+
+  .subtle {
+    color: #0b1f3bb3;
+  }
+
+  /* Card */
+  .card {
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-card);
+    color: var(--color-card-foreground);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
+  }
+  .card:hover {
+    box-shadow: 0 6px 24px rgba(11, 31, 59, 0.08);
+    transform: translateY(-2px);
+  }
+
+  .card-muted {
+    border-radius: 0.75rem;
+    background-color: var(--color-muted);
+    border: 1px solid var(--color-border);
+  }
+
+  /* Buttons */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    transition: opacity 0.2s ease;
+  }
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-accent {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background-color: var(--color-accent);
+    color: var(--color-accent-foreground);
+    transition: filter 0.2s ease, opacity 0.2s ease;
+  }
+  .btn-accent:hover {
+    filter: brightness(0.98);
+    opacity: 0.95;
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-foreground);
+    border: 1px solid rgba(11, 31, 59, 0.25);
+    background-color: transparent;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  .btn-outline:hover {
+    background-color: rgba(11, 31, 59, 0.06);
+    border-color: rgba(11, 31, 59, 0.4);
+  }
+
+  .btn-hero-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background-color: transparent;
+    transition: background-color 0.2s ease, border-color 0.2s ease,
+      color 0.2s ease;
+  }
+  .btn-hero-outline:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: #ffffff;
+  }
+
+  /* Badges */
+  .badge-accent-soft {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    background-color: rgba(10, 58, 130, 0.1);
+    color: var(--color-primary);
+  }
+
+  .text-brand {
+    color: var(--color-primary);
+  }
+  .bg-brand {
+    background-color: var(--color-primary);
+  }
+  .text-accent {
+    color: var(--color-accent);
+  }
+
+  /* Gold accent utilities */
+  .text-gold {
+    color: var(--gold);
+  }
+  .fill-gold {
+    fill: var(--gold);
+  }
+  .bg-gold-soft {
+    background-color: var(--gold-soft);
+  }
+  .badge-gold-soft {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    background-color: #fff3bf;
+    color: var(--gold-foreground);
+  }
+
+  /* Safe text utilities */
+  .clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .hyphens-auto {
+    hyphens: auto;
+  }
+
+  /* Additional utilities from the second file (semantic tokens and spacing) */
+  .section-title {
+    font-size: clamp(1.875rem, 2.5vw, 2.25rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--color-primary);
+    letter-spacing: -0.01em;
+  }
+  .subtle {
+    color: rgba(11, 31, 59, 0.7);
+  }
+}
