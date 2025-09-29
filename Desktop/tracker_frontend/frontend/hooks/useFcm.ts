@@ -57,7 +57,7 @@ export function useFcm(jwt?: string) {
                     const ready = await navigator.serviceWorker.ready
                     await ready.showNotification(title, { body })
                   } else {
-                    // Fallback to Notification API
+                   
                     new Notification(title, { body })
                   }
                 } catch {
