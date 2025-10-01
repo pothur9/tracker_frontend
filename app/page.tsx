@@ -7,7 +7,7 @@ import Link from "next/link"
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex flex-col">
-      {/* Header */}
+   
       <header className="p-6 text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
           <Bus className="h-8 w-8 text-primary" />
