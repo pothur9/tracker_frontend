@@ -188,8 +188,8 @@ export default function StudentMapPage() {
         </div>
 
         {/* Floating Ride Info (Uber-like) */}
-        {driverLocation ? (
-          <div className="absolute top-4 left-4 right-4 z-20">
+        <div className="absolute top-4 left-4 right-4 z-20">
+          {driverLocation ? (
             <Card className="shadow-lg">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -200,7 +200,7 @@ export default function StudentMapPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold">Bus {user.busNumber}</h3>
-                        <Badge variant="default">On Route</Badge>
+                        <Badge variant="default" className="bg-green-600">Active</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {Math.round(driverLocation.speed || 0)} km/h • Updated {new Date(driverLocation.timestamp).toLocaleTimeString()}
@@ -214,8 +214,27 @@ export default function StudentMapPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        ) : null}
+          ) : !isLoading ? (
+            <Card className="shadow-lg border-destructive">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
+                    <MapPin className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-destructive">Driver Not Active</h3>
+                      <Badge variant="destructive">Offline</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Bus {user.busNumber} is not currently sharing location
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
 
         {/* Loading Overlay */}
         {isLoading && (

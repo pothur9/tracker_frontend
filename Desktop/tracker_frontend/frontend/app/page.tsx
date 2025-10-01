@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bus, Users, MapPin, Eye } from "lucide-react"
+import { Bus, Users, MapPin } from "lucide-react"
 import Link from "next/link"
 
 export default function HomePage() {
@@ -22,26 +22,6 @@ export default function HomePage() {
           <div className="text-center mb-8">
             <h2 className="text-2xl font-serif font-bold mb-2">Get Started</h2>
             <p className="text-muted-foreground">Choose your account type to continue</p>
-          </div>
-
-          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Eye className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Demo Access</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">Preview the dashboards without creating an account</p>
-            <div className="flex gap-2">
-              <Link href="/dashboard/student" className="flex-1">
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  Student Demo
-                </Button>
-              </Link>
-              <Link href="/dashboard/driver" className="flex-1">
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  Driver Demo
-                </Button>
-              </Link>
-            </div>
           </div>
 
           <div className="space-y-4">

@@ -23,22 +23,33 @@ export const getCurrentLocation = (): Promise<Location> => {
       return
     }
 
+    console.log("🌍 Requesting exact GPS location...")
+    
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        resolve({
+        const location = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           timestamp: new Date(),
           accuracy: position.coords.accuracy,
+        }
+        
+        console.log("✅ Exact location obtained:", {
+          lat: location.latitude,
+          lng: location.longitude,
+          accuracy: `${Math.round(location.accuracy)}m`,
         })
+        
+        resolve(location)
       },
       (error) => {
+        console.error("❌ Geolocation error:", error.message)
         reject(error)
       },
       {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
+        enableHighAccuracy: true, // Use GPS for highest accuracy
+        timeout: 30000, // Increased timeout for GPS lock
+        maximumAge: 0, // Always get fresh location
       },
     )
   })
@@ -49,22 +60,33 @@ export const watchLocation = (callback: (location: Location) => void): number =>
     throw new Error("Geolocation is not supported")
   }
 
+  console.log("👀 Starting continuous GPS tracking (high accuracy mode)...")
+
   return navigator.geolocation.watchPosition(
     (position) => {
-      callback({
+      const location = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         timestamp: new Date(),
         accuracy: position.coords.accuracy,
+      }
+      
+      console.log("📍 Live GPS update:", {
+        lat: location.latitude.toFixed(6),
+        lng: location.longitude.toFixed(6),
+        accuracy: `${Math.round(location.accuracy)}m`,
+        time: location.timestamp.toLocaleTimeString(),
       })
+      
+      callback(location)
     },
     (error) => {
-      console.error("Location error:", error)
+      console.error("❌ GPS tracking error:", error.message)
     },
     {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0,
+      enableHighAccuracy: true, // Force GPS usage
+      timeout: 30000, // 30 seconds for GPS lock
+      maximumAge: 0, // No cached positions
     },
   )
 }
@@ -225,23 +247,53 @@ class LocationTrackingService implements RealTimeLocationService {
 export const locationService = new LocationTrackingService()
 
 export const getDriverLocation = async (busNumber: string): Promise<DriverLocation | null> => {
-  const resp = await api(`/api/location/latest?busNumber=${encodeURIComponent(busNumber)}`)
-  if (!resp) return null
-  const lat = typeof resp.lat === 'number' ? resp.lat : Number(resp.lat)
-  const lng = typeof resp.lng === 'number' ? resp.lng : Number(resp.lng)
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
-  return {
-    driverId: "", // Not returned by API; not needed for map
-    busNumber: resp.busNumber || busNumber,
-    latitude: lat,
-    longitude: lng,
-    timestamp: new Date(resp.updatedAt || new Date().toISOString()),
-    speed: 0,
-    heading: 0,
+  try {
+    const resp = await api(`/api/location/latest?busNumber=${encodeURIComponent(busNumber)}`)
+    if (!resp) {
+      console.log(`⚠️ No location data available for Bus ${busNumber}`)
+      return null
+    }
+    
+    const lat = typeof resp.lat === 'number' ? resp.lat : Number(resp.lat)
+    const lng = typeof resp.lng === 'number' ? resp.lng : Number(resp.lng)
+    
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      console.error(`❌ Invalid coordinates for Bus ${busNumber}:`, { lat, lng })
+      return null
+    }
+    
+    const location = {
+      driverId: "", // Not returned by API; not needed for map
+      busNumber: resp.busNumber || busNumber,
+      latitude: lat,
+      longitude: lng,
+      timestamp: new Date(resp.updatedAt || new Date().toISOString()),
+      speed: resp.speed || 0,
+      heading: resp.heading || 0,
+    }
+    
+    console.log(`✅ Received driver location for Bus ${busNumber}:`, {
+      lat: location.latitude,
+      lng: location.longitude,
+      timestamp: location.timestamp,
+    })
+    
+    return location
+  } catch (error) {
+    console.error(`❌ Error fetching location for Bus ${busNumber}:`, error)
+    return null
   }
 }
 
 export const updateDriverLocation = async (location: DriverLocation): Promise<void> => {
+  console.log(`📍 Updating driver location for Bus ${location.busNumber}:`, {
+    latitude: location.latitude,
+    longitude: location.longitude,
+    speed: location.speed,
+    heading: location.heading,
+    timestamp: location.timestamp,
+  })
+  
   await api(
     "/api/location/driver/update",
     {
@@ -250,7 +302,12 @@ export const updateDriverLocation = async (location: DriverLocation): Promise<vo
         lat: location.latitude,
         lng: location.longitude,
         busNumber: location.busNumber,
+        speed: location.speed,
+        heading: location.heading,
+        timestamp: location.timestamp.toISOString(),
       },
     },
   )
+  
+  console.log(`✅ Location updated successfully for Bus ${location.busNumber}`)
 }

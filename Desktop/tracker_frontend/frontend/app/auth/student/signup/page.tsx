@@ -19,8 +19,15 @@ export default function StudentSignupPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [currentStep, setCurrentStep] = useState(1)
   const [schools, setSchools] = useState<Array<{ id: string; schoolName: string }>>([])
+  const [schoolsLoading, setSchoolsLoading] = useState(true)
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("")
+  const [passwordCriteria, setPasswordCriteria] = useState({
+    length: false,
+    uppercase: false,
+    special: false,
+  })
   const [formData, setFormData] = useState({
     city: "",
     schoolName: "",
@@ -70,12 +77,27 @@ export default function StudentSignupPage() {
     let cancelled = false
     ;(async () => {
       try {
+        console.log('Fetching schools from:', `${process.env.NEXT_PUBLIC_API_BASE}/api/school`)
         const data = await api("/api/school")
         if (!cancelled) {
-          setSchools(Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName })) : [])
+          const schoolList = Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName })) : []
+          setSchools(schoolList)
+          setSchoolsLoading(false)
+          console.log('✅ Successfully fetched schools:', schoolList.length, 'schools')
+          if (schoolList.length > 0) {
+            console.log('Schools:', schoolList.map(s => s.schoolName).join(', '))
+          }
         }
       } catch (e) {
-        // ignore fetch errors for now; user can still type manually if needed
+        console.error('❌ Error fetching schools:', e)
+        if (!cancelled) {
+          setSchoolsLoading(false)
+          toast({
+            title: "Warning",
+            description: "Could not load schools. You can enter your school name manually.",
+            variant: "default",
+          })
+        }
       }
     })()
     return () => {
@@ -85,10 +107,65 @@ export default function StudentSignupPage() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+    
+    // Update password criteria when password changes
+    if (field === "password") {
+      setPasswordCriteria({
+        length: value.length >= 8,
+        uppercase: /[A-Z]/.test(value),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(value),
+      })
+    }
+  }
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^[6-9]\d{9}$/
+    return phoneRegex.test(phone)
+  }
+
+  const validatePassword = (password: string): boolean => {
+    const hasLength = password.length >= 8
+    const hasUppercase = /[A-Z]/.test(password)
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    return hasLength && hasUppercase && hasSpecial
+  }
+
+  const handleNextStep = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validate Step 1
+    if (!formData.city || !formData.schoolName || !formData.name || !formData.fatherName || !formData.gender || !formData.phone) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!validatePhone(formData.phone)) {
+      toast({
+        title: "Error",
+        description: "Phone number must be 10 digits starting with 6-9",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setCurrentStep(2)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!validatePassword(formData.password)) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters with one uppercase letter and one special character",
+        variant: "destructive",
+      })
+      return
+    }
 
     if (formData.password !== formData.confirmPassword) {
       toast({
@@ -99,28 +176,20 @@ export default function StudentSignupPage() {
       return
     }
 
-    if (formData.phone.length < 10) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid phone number",
-        variant: "destructive",
-      })
-      return
-    }
-
     setIsLoading(true)
 
     try {
-      // Send OTP first
-      await sendOTP(formData.phone)
+      // Send OTP via 2Factor API
+      const sessionId = await sendOTP(formData.phone, "student")
 
-      // Store form data for OTP verification
+      // Store form data and session ID for OTP verification
       sessionStorage.setItem(
         "signupData",
         JSON.stringify({
           ...formData,
           schoolId: selectedSchoolId || undefined,
           type: "student",
+          otpSessionId: sessionId,
         }),
       )
 
@@ -130,10 +199,10 @@ export default function StudentSignupPage() {
       })
 
       router.push("/auth/verify-otp")
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to send OTP. Please try again.",
+        description: error.message || "Failed to send OTP. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -161,210 +230,287 @@ export default function StudentSignupPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-serif">Student Registration</CardTitle>
             <CardDescription>Create your account to start tracking your school bus</CardDescription>
+            
+            {/* Step Indicator */}
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep === 1 ? 'bg-primary text-primary-foreground' : 'bg-primary text-primary-foreground'}`}>
+                1
+              </div>
+              <div className={`h-0.5 w-12 ${currentStep === 2 ? 'bg-primary' : 'bg-muted'}`}></div>
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${currentStep === 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                2
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Step {currentStep} of 2: {currentStep === 1 ? 'Personal Information' : 'School & Password Details'}
+            </p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* City */}
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  placeholder="Enter your city"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  required
-                />
-              </div>
+            <form onSubmit={currentStep === 1 ? handleNextStep : handleSubmit} className="space-y-4">
+              {/* Step 1: Personal Information */}
+              {currentStep === 1 && (
+                <>
+                  {/* City */}
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      placeholder="Enter your city"
+                      value={formData.city}
+                      onChange={(e) => handleInputChange("city", e.target.value)}
+                      required
+                    />
+                  </div>
 
-              {/* School Name */}
-              <div className="space-y-2">
-                <Label htmlFor="schoolName">School</Label>
-                {schools.length > 0 ? (
-                  <Select
-                    value={selectedSchoolId}
-                    onValueChange={(value) => {
-                      setSelectedSchoolId(value)
-                      const sel = schools.find((s) => s.id === value)
-                      handleInputChange("schoolName", sel?.schoolName || "")
-                    }}
+                  {/* School Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="schoolName">School</Label>
+                    {schoolsLoading ? (
+                      <Select disabled>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Loading schools..." />
+                        </SelectTrigger>
+                      </Select>
+                    ) : (
+                      <>
+                        <Select
+                          value={selectedSchoolId}
+                          onValueChange={(value) => {
+                            if (value === "other") {
+                              setSelectedSchoolId(value)
+                              handleInputChange("schoolName", "")
+                            } else {
+                              setSelectedSchoolId(value)
+                              const sel = schools.find((s) => s.id === value)
+                              handleInputChange("schoolName", sel?.schoolName || "")
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your school" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {schools.length > 0 ? (
+                              schools.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  {s.schoolName}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <SelectItem value="none" disabled>
+                                No schools available
+                              </SelectItem>
+                            )}
+                            <SelectItem value="other">Other (Enter manually)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {selectedSchoolId === "other" && (
+                          <Input
+                            id="schoolNameManual"
+                            placeholder="Enter your school name"
+                            value={formData.schoolName}
+                            onChange={(e) => handleInputChange("schoolName", e.target.value)}
+                            required
+                            className="mt-2"
+                          />
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      placeholder="Enter your full name"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange("name", e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  {/* Father Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="fatherName">Father's Name</Label>
+                    <Input
+                      id="fatherName"
+                      placeholder="Enter father's name"
+                      value={formData.fatherName}
+                      onChange={(e) => handleInputChange("fatherName", e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  {/* Gender */}
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select value={formData.gender} onValueChange={(value) => handleInputChange("gender", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Phone Number */}
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="Enter 10-digit phone number"
+                      value={formData.phone}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 10)
+                        handleInputChange("phone", value)
+                      }}
+                      maxLength={10}
+                      required
+                    />
+                    {formData.phone && !validatePhone(formData.phone) && (
+                      <p className="text-xs text-destructive">Must be 10 digits starting with 6, 7, 8, or 9</p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Step 2: School & Password Details */}
+              {currentStep === 2 && (
+                <>
+                  {/* Bus Number */}
+                  <div className="space-y-2">
+                    <Label htmlFor="busNumber">Bus Number</Label>
+                    {busOptions.length > 0 ? (
+                      <Select
+                        value={formData.busNumber}
+                        onValueChange={(value) => handleInputChange("busNumber", value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select bus number" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {busOptions.map((b) => (
+                            <SelectItem key={b.id} value={b.busNumber}>
+                              {b.busNumber} {b.name ? `- ${b.name}` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id="busNumber"
+                        placeholder="Enter bus number"
+                        value={formData.busNumber}
+                        onChange={(e) => handleInputChange("busNumber", e.target.value)}
+                        required
+                      />
+                    )}
+                  </div>
+
+                  {/* Class and Section */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="class">Class</Label>
+                      <Select value={formData.class} onValueChange={(value) => handleInputChange("class", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Class" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <SelectItem key={i + 1} value={(i + 1).toString()}>
+                              {i + 1}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="section">Section</Label>
+                      <Select value={formData.section} onValueChange={(value) => handleInputChange("section", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Section" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["A", "B", "C", "D", "E"].map((section) => (
+                            <SelectItem key={section} value={section}>
+                              {section}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Create a password"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange("password", e.target.value)}
+                      required
+                    />
+                    {/* Password Criteria */}
+                    <div className="text-xs space-y-1 mt-2">
+                      <p className={passwordCriteria.length ? "text-green-600" : "text-muted-foreground"}>
+                        {passwordCriteria.length ? "✓" : "○"} At least 8 characters
+                      </p>
+                      <p className={passwordCriteria.uppercase ? "text-green-600" : "text-muted-foreground"}>
+                        {passwordCriteria.uppercase ? "✓" : "○"} One uppercase letter
+                      </p>
+                      <p className={passwordCriteria.special ? "text-green-600" : "text-muted-foreground"}>
+                        {passwordCriteria.special ? "✓" : "○"} One special character (!@#$%^&*...)
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Confirm your password"
+                      value={formData.confirmPassword}
+                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-3">
+                {currentStep === 2 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCurrentStep(1)}
+                    className="flex-1"
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your school" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {schools.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.schoolName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input
-                    id="schoolName"
-                    placeholder="Enter your school name"
-                    value={formData.schoolName}
-                    onChange={(e) => {
-                      setSelectedSchoolId("")
-                      handleInputChange("schoolName", e.target.value)
-                    }}
-                    required
-                  />
+                    Back
+                  </Button>
                 )}
+                <Button type="submit" className="flex-1" size="lg" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending OTP...
+                    </>
+                  ) : currentStep === 1 ? (
+                    "Next Step"
+                  ) : (
+                    "Create Account"
+                  )}
+                </Button>
               </div>
-
-              {/* Name */}
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Father Name */}
-              <div className="space-y-2">
-                <Label htmlFor="fatherName">Father's Name</Label>
-                <Input
-                  id="fatherName"
-                  placeholder="Enter father's name"
-                  value={formData.fatherName}
-                  onChange={(e) => handleInputChange("fatherName", e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Gender */}
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select value={formData.gender} onValueChange={(value) => handleInputChange("gender", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Phone Number */}
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="Enter phone number"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Bus Number */}
-              <div className="space-y-2">
-                <Label htmlFor="busNumber">Bus Number</Label>
-                {busOptions.length > 0 ? (
-                  <Select
-                    value={formData.busNumber}
-                    onValueChange={(value) => handleInputChange("busNumber", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select bus number" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {busOptions.map((b) => (
-                        <SelectItem key={b.id} value={b.busNumber}>
-                          {b.busNumber} {b.name ? `- ${b.name}` : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input
-                    id="busNumber"
-                    placeholder="Enter bus number"
-                    value={formData.busNumber}
-                    onChange={(e) => handleInputChange("busNumber", e.target.value)}
-                    required
-                  />
-                )}
-              </div>
-
-              {/* Class and Section */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="class">Class</Label>
-                  <Select value={formData.class} onValueChange={(value) => handleInputChange("class", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Class" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 12 }, (_, i) => (
-                        <SelectItem key={i + 1} value={(i + 1).toString()}>
-                          {i + 1}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="section">Section</Label>
-                  <Select value={formData.section} onValueChange={(value) => handleInputChange("section", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Section" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["A", "B", "C", "D", "E"].map((section) => (
-                        <SelectItem key={section} value={section}>
-                          {section}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Create a password"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
-                  required
-                />
-              </div>
-
-              {/* Confirm Password */}
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                  required
-                />
-              </div>
-
-              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending OTP...
-                  </>
-                ) : (
-                  "Create Account"
-                )}
-              </Button>
             </form>
 
             <div className="mt-6 text-center">

@@ -43,10 +43,10 @@ export default function VerifyOTPPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (otp.length !== 6) {
+    if (otp.length !== 4) {
       toast({
         title: "Error",
-        description: "Please enter a valid 6-digit OTP",
+        description: "Please enter a valid 4-digit OTP",
         variant: "destructive",
       })
       return
@@ -55,7 +55,8 @@ export default function VerifyOTPPage() {
     setIsLoading(true)
 
     try {
-      const isValid = await verifyOTP(signupData.phone, otp, signupData.type === "driver" ? "driver" : "student")
+      // Verify OTP using 2Factor API with session ID
+      const isValid = await verifyOTP(signupData.phone, otp, signupData.otpSessionId)
 
       if (isValid) {
         // Get FCM token before creating the account so backend stores it
@@ -92,17 +93,17 @@ export default function VerifyOTPPage() {
 
         toast({
           title: "Account Created!",
-          description: `Your ${signupData.type} account has been successfully created.`,
+          description: `Your ${signupData.type} account has been successfully created. Please login to continue.`,
         })
 
         // Clear signup data
         sessionStorage.removeItem("signupData")
 
-        // Redirect based on user type
+        // Redirect to login page based on user type
         if (signupData.type === "student") {
-          router.push("/dashboard/student")
+          router.push("/auth/student/login")
         } else {
-          router.push("/dashboard/driver")
+          router.push("/auth/driver/login")
         }
       } else {
         toast({
@@ -128,16 +129,23 @@ export default function VerifyOTPPage() {
     setIsResending(true)
 
     try {
-      await sendOTP(signupData.phone, signupData.type === "driver" ? "driver" : "student")
+      // Send new OTP and get new session ID
+      const sessionId = await sendOTP(signupData.phone, signupData.type === "driver" ? "driver" : "student")
+      
+      // Update signup data with new session ID
+      const updatedData = { ...signupData, otpSessionId: sessionId }
+      setSignupData(updatedData)
+      sessionStorage.setItem("signupData", JSON.stringify(updatedData))
+      
       setCountdown(60)
       toast({
         title: "OTP Sent",
         description: "A new OTP has been sent to your phone.",
       })
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to resend OTP. Please try again.",
+        description: error.message || "Failed to resend OTP. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -181,7 +189,7 @@ export default function VerifyOTPPage() {
             </div>
             <CardTitle className="text-2xl font-serif">Verify Phone Number</CardTitle>
             <CardDescription>
-              We've sent a 6-digit code to {signupData.phone}
+              We've sent a 4-digit code to {signupData.phone}
               {signupData.type === "driver" && (
                 <span className="block mt-1 text-accent">Driver Account Verification</span>
               )}
@@ -194,14 +202,16 @@ export default function VerifyOTPPage() {
                 <Input
                   id="otp"
                   type="text"
-                  placeholder="123456"
+                  placeholder="Enter 4-digit OTP"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
                   className="text-center text-2xl tracking-widest"
-                  maxLength={6}
+                  maxLength={4}
                   required
                 />
-                <p className="text-xs text-muted-foreground text-center">For demo purposes, use: 123456</p>
+                <p className="text-xs text-muted-foreground text-center">
+                  Check your SMS for the 4-digit verification code
+                </p>
               </div>
 
               <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
