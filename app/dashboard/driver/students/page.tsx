@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Search, Users, Phone, MapPin, Clock } from "lucide-react"
-import Link from "next/link"
+import { Search, Users, Phone, MapPin, Clock } from "lucide-react"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
+import { Navbar } from "@/components/navbar"
 
 interface Student {
   id: string
@@ -109,23 +109,8 @@ export default function DriverStudentsPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/driver">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="font-serif font-bold text-lg">Student List</h1>
-            <p className="text-sm text-muted-foreground">Bus {user.busNumber}</p>
-          </div>
-        </div>
-        <Badge variant="outline">
-          {activeStudents}/{totalStudents} Active
-        </Badge>
-      </header>
+      {/* Navbar */}
+      <Navbar showBackButton backUrl="/dashboard/driver" />
 
       {/* Content */}
       <div className="flex-1 p-4 space-y-4">

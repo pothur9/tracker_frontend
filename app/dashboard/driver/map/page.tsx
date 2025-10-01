@@ -4,14 +4,14 @@ import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Navigation, Users, MapPin, Power, Plus, Locate } from "lucide-react"
-import Link from "next/link"
+import { Navigation, Users, MapPin, Power, Plus, Locate } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { getCurrentLocation, type Location, type DriverLocation, watchLocation, stopWatchingLocation, updateDriverLocation } from "@/lib/location"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api"
+import { Navbar } from "@/components/navbar"
 
 export default function DriverMapPage() {
   const { user } = useAuth()
@@ -222,23 +222,8 @@ export default function DriverMapPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/driver">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="font-serif font-bold text-lg">Driver Map</h1>
-            <p className="text-sm text-muted-foreground">Bus {user.busNumber}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={isLocationSharing ? "default" : "secondary"}>{isLocationSharing ? "Sharing" : "Offline"}</Badge>
-        </div>
-      </header>
+      {/* Navbar */}
+      <Navbar showBackButton backUrl="/dashboard/driver" />
 
       {/* Full Screen Map */}
       <div className="flex-1 relative">
@@ -267,7 +252,7 @@ export default function DriverMapPage() {
         </div>
 
         {/* Floating Status Card */}
-        <div className="absolute top-4 left-4 right-4 z-10">
+        {/* <div className="absolute top-4 left-4 right-4 z-10">
           <Card className="shadow-lg">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -297,7 +282,7 @@ export default function DriverMapPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         {/* Floating Controls */}
         <div className="absolute bottom-20 right-4 z-10 space-y-2">

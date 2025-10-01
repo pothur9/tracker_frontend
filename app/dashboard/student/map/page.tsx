@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Navigation, Crosshair, MapPin } from "lucide-react"
-import Link from "next/link"
+import { Navigation, Crosshair, MapPin } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { useAuth } from "@/hooks/use-auth"
@@ -12,6 +11,7 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { api } from "@/lib/api"
+import { Navbar } from "@/components/navbar"
 
 export default function StudentMapPage() {
   const { user } = useAuth()
@@ -134,26 +134,8 @@ export default function StudentMapPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/student">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="font-serif font-bold text-lg">Full Map View</h1>
-            <p className="text-sm text-muted-foreground">Bus {user.busNumber}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleGetDirections} disabled={!driverLocation}>
-            <Navigation className="h-4 w-4 mr-2" />
-            Directions
-          </Button>
-        </div>
-      </header>
+      {/* Navbar */}
+      <Navbar showBackButton backUrl="/dashboard/student" />
 
       {/* Full Screen Map */}
       <div className="flex-1 relative">
@@ -188,7 +170,7 @@ export default function StudentMapPage() {
         </div>
 
         {/* Floating Ride Info (Uber-like) */}
-        {driverLocation ? (
+        {/* {driverLocation ? (
           <div className="absolute top-4 left-4 right-4 z-20">
             <Card className="shadow-lg">
               <CardContent className="p-4">
@@ -215,7 +197,7 @@ export default function StudentMapPage() {
               </CardContent>
             </Card>
           </div>
-        ) : null}
+        ) : null} */}
 
         {/* Loading Overlay */}
         {isLoading && (

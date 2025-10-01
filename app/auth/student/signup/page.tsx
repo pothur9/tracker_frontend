@@ -8,13 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, ArrowRight, Bus, Loader2, CheckCircle2 } from "lucide-react"
+import { ArrowRight, Loader2, CheckCircle2, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { sendOTP } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
 import { validatePhoneNumber, validatePassword } from "@/lib/validation"
+import { Navbar } from "@/components/navbar"
 
 export default function StudentSignupPage() {
   const router = useRouter()
@@ -197,21 +198,10 @@ export default function StudentSignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4 sm:p-6">
-      <div className="max-w-md mx-auto w-full">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6 pt-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Bus className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-serif font-bold">TrackBus</h1>
-          </div>
-        </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <Navbar showBackButton backUrl="/" />
+      
+      <div className="max-w-md mx-auto w-full p-4 sm:p-6 pt-8">
         <Card className="w-full">
           <CardHeader className="text-center pb-4 px-4 sm:px-6">
             <CardTitle className="text-2xl font-serif">Student Registration</CardTitle>

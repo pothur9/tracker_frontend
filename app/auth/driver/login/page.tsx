@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Bus, Loader2, Eye, EyeOff, MapPin } from "lucide-react"
+import { Loader2, Eye, EyeOff, MapPin } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { validatePhoneNumber } from "@/lib/validation"
+import { Navbar } from "@/components/navbar"
 
 export default function DriverLoginPage() {
   const router = useRouter()
@@ -77,21 +78,10 @@ export default function DriverLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6 pt-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Bus className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-serif font-bold">TrackBus</h1>
-          </div>
-        </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <Navbar showBackButton backUrl="/" />
+      
+      <div className="max-w-md mx-auto p-4 pt-8">
         <Card>
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4">

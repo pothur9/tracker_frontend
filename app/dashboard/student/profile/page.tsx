@@ -8,13 +8,13 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, User, Edit3, Save, X, LogOut, Settings, Moon, Sun, Phone, MapPin, School } from "lucide-react"
-import Link from "next/link"
+import { User, Edit3, Save, X, LogOut, Settings, Moon, Sun, Phone, MapPin, School } from "lucide-react"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
+import { Navbar } from "@/components/navbar"
 
 export default function StudentProfilePage() {
   const { user, signOut } = useAuth()
@@ -110,38 +110,8 @@ export default function StudentProfilePage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/student">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="font-serif font-bold text-lg">Profile</h1>
-            <p className="text-sm text-muted-foreground">Manage your account</p>
-          </div>
-        </div>
-        <Button
-          variant={isEditing ? "default" : "outline"}
-          size="sm"
-          onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
-          disabled={isLoading}
-        >
-          {isEditing ? (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </>
-          ) : (
-            <>
-              <Edit3 className="h-4 w-4 mr-2" />
-              Edit
-            </>
-          )}
-        </Button>
-      </header>
+      {/* Navbar */}
+      <Navbar showBackButton backUrl="/dashboard/student" />
 
       {/* Content */}
       <div className="flex-1 p-4 space-y-6">

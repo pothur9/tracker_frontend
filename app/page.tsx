@@ -2,23 +2,34 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bus, Users, MapPin } from "lucide-react"
+import { Users, MapPin } from "lucide-react"
 import Link from "next/link"
+import { Navbar } from "@/components/navbar"
+import Image from "next/image"
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<"student" | "driver">("student")
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
-      {/* Header */}
-      <header className="w-full px-4 py-6 sm:px-6 sm:py-8">
+      {/* Navbar */}
+      <Navbar />
+
+      {/* Hero Section */}
+      <header className="w-full px-4 py-8 sm:px-6 sm:py-12">
         <div className="max-w-6xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="p-2 bg-primary/10 rounded-xl">
-              <Bus className="h-7 w-7 sm:h-9 sm:w-9 text-primary" />
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden border-2 border-primary/20">
+              <Image
+                src="/logo.jpg"
+                alt="Ambari Logo"
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground tracking-tight">
-              TrackBus
+              Ambari
             </h1>
           </div>
           <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto">

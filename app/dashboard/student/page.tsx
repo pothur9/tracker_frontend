@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Navigation, Phone, User, Bell, Menu, RefreshCw } from "lucide-react"
+import { MapPin, Navigation, Phone, User, Bell, RefreshCw } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { ConnectionStatus } from "@/components/connection-status"
@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useRealTimeLocation } from "@/hooks/use-real-time-location"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api"
+import { Navbar } from "@/components/navbar"
 
 export default function StudentDashboard() {
   const { user } = useAuth()
@@ -145,24 +146,8 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon">
-            <Menu className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="font-serif font-bold text-lg">Track Bus</h1>
-            <p className="text-sm text-muted-foreground">{user.busNumber}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <ConnectionStatus status={connectionStatus} onReconnect={forceReconnect} compact />
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
-        </div>
-      </header>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Content Area (White Background) */}
       <div className="flex-1 relative">

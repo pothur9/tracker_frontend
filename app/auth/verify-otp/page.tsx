@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Bus, Loader2, Users, MapPin } from "lucide-react"
-import Link from "next/link"
+import { Loader2, Users, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { verifyOTP, signUp, sendOTP } from "@/lib/auth"
 import { api } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { getFcmToken } from "@/lib/fcm"
+import { Navbar } from "@/components/navbar"
 
 export default function VerifyOTPPage() {
   const router = useRouter()
@@ -181,21 +181,10 @@ export default function VerifyOTPPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6 pt-4">
-          <Link href={getBackUrl()}>
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Bus className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-serif font-bold">TrackBus</h1>
-          </div>
-        </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <Navbar showBackButton backUrl={getBackUrl()} />
+      
+      <div className="max-w-md mx-auto p-4 pt-8">
         <Card>
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">

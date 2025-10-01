@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
-import { MapPin, Users, Navigation, Phone, Menu, Bell, Power, Clock, Wifi } from "lucide-react"
+import { MapPin, Users, Navigation, Phone, Bell, Power, Clock, Wifi } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { ConnectionStatus } from "@/components/connection-status"
 import { useAuth } from "@/hooks/use-auth"
+import { Navbar } from "@/components/navbar"
 import {
   getCurrentLocation,
   updateDriverLocation,
@@ -289,25 +290,8 @@ export default function DriverDashboard() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon">
-            <Menu className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="font-serif font-bold text-lg">Driver Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Bus {currentUser.busNumber}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant={isLocationSharing ? "default" : "secondary"}>{isLocationSharing ? "Live" : "Offline"}</Badge>
-          {!user && <Badge variant="outline">Demo Mode</Badge>}
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
-        </div>
-      </header>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Main Content */}
       <div className="flex-1 p-4 space-y-4">

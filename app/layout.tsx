@@ -24,8 +24,8 @@ const sourceSans = Source_Sans_3({
 })
 
 export const metadata: Metadata = {
-  title: "TrackBus - Student Transportation Tracking",
-  description: "Real-time bus tracking for students and parents",
+  title: "Ambari - Student Transportation Tracking",
+  description: "Real-time bus tracking for students and parents - Managed by the Adaviswamy Trust",
   generator: "v0.app",
 }
 

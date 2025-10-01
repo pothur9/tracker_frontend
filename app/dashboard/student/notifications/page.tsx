@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowLeft, Bell, Clock, AlertTriangle, CheckCircle, X } from "lucide-react"
-import Link from "next/link"
+import { Bell, Clock, AlertTriangle, CheckCircle, X } from "lucide-react"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
+import { Navbar } from "@/components/navbar"
 
 interface Notification {
   id: string
@@ -113,27 +113,8 @@ export default function StudentNotificationsPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="bg-card border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/student">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="font-serif font-bold text-lg">Notifications</h1>
-            <p className="text-sm text-muted-foreground">
-              {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
-            </p>
-          </div>
-        </div>
-        {unreadCount > 0 && (
-          <Button variant="outline" size="sm" onClick={markAllAsRead}>
-            Mark all read
-          </Button>
-        )}
-      </header>
+      {/* Navbar */}
+      <Navbar showBackButton backUrl="/dashboard/student" />
 
       {/* Content */}
       <div className="flex-1 p-4">
