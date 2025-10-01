@@ -17,6 +17,7 @@ export default function StudentDashboard() {
   const { user } = useAuth()
   const router = useRouter()
   const [schoolCoords, setSchoolCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [driverStatus, setDriverStatus] = useState<{ isActive: boolean; driverName?: string } | null>(null)
 
   const {
     location: driverLocation,
@@ -36,6 +37,40 @@ export default function StudentDashboard() {
       return
     }
   }, [user, router])
+
+  // Fetch driver status by bus number
+  useEffect(() => {
+    let cancelled = false
+    async function loadDriverStatus() {
+      if (!user?.busNumber || !user?.schoolId) {
+        setDriverStatus(null)
+        return
+      }
+      try {
+        // Fetch driver info from the school
+        const drivers = await api(`/api/school/${user.schoolId}/drivers`)
+        if (cancelled) return
+        if (Array.isArray(drivers)) {
+          const driver = drivers.find((d: any) => d.busNumber === user.busNumber)
+          if (driver) {
+            setDriverStatus({
+              isActive: driver.isActive !== false, // Default to true if not specified
+              driverName: driver.name,
+            })
+          } else {
+            setDriverStatus({ isActive: false })
+          }
+        }
+      } catch (e) {
+        console.error("Error fetching driver status:", e)
+        if (!cancelled) setDriverStatus(null)
+      }
+    }
+    loadDriverStatus()
+    return () => {
+      cancelled = true
+    }
+  }, [user?.busNumber, user?.schoolId])
 
   // Fetch school coordinates based on user's schoolName (best effort)
   useEffect(() => {
@@ -248,8 +283,27 @@ export default function StudentDashboard() {
           </Card>
         </div>
 
+        {/* Driver Inactive/Offline Message */}
+        {driverStatus && !driverStatus.isActive && (
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+            <Card className="mx-4 shadow-lg border-destructive">
+              <CardContent className="p-6 text-center">
+                <MapPin className="h-12 w-12 text-destructive mx-auto mb-4" />
+                <h3 className="font-semibold mb-2 text-destructive">Driver Inactive</h3>
+                <p className="text-sm text-muted-foreground mb-2">
+                  The driver for bus {user.busNumber} is currently marked as inactive.
+                </p>
+                {driverStatus.driverName && (
+                  <p className="text-sm text-muted-foreground mb-4">Driver: {driverStatus.driverName}</p>
+                )}
+                <p className="text-xs text-muted-foreground">Please contact your school for more information.</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Driver Offline Message */}
-        {!isLoading && (!driverLocation || !connectionStatus.isConnected) && (
+        {driverStatus?.isActive && !isLoading && (!driverLocation || !connectionStatus.isConnected) && (
           <div className="absolute inset-0 flex items-center justify-center z-20">
             <Card className="mx-4 shadow-lg">
               <CardContent className="p-6 text-center">

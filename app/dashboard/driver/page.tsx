@@ -122,13 +122,16 @@ export default function DriverDashboard() {
         setCurrentLocation(location)
 
         const id = watchLocation((newLocation) => {
-          // Compute heading and speed vs previous point
+          let currentSpeed = computedSpeed
+          let currentHeading = computedHeading
+
+          // Compute heading and speed vs previous point for better accuracy
           if (lastLocation) {
             const toRad = (deg: number) => (deg * Math.PI) / 180
             const toDeg = (rad: number) => (rad * 180) / Math.PI
             const earthRadius = 6371e3 // meters
 
-            // Haversine distance
+            // Haversine distance for accurate calculation
             const φ1 = toRad(lastLocation.latitude)
             const φ2 = toRad(newLocation.latitude)
             const Δφ = toRad(newLocation.latitude - lastLocation.latitude)
@@ -140,9 +143,13 @@ export default function DriverDashboard() {
             const speedMs = distance / timeSeconds
             const speedKmh = speedMs * 3.6
 
+            // Calculate bearing/heading between two points
             const y = Math.sin(Δλ) * Math.cos(φ2)
             const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ)
             const brng = (toDeg(Math.atan2(y, x)) + 360) % 360
+            
+            currentHeading = brng
+            currentSpeed = speedKmh
             setComputedHeading(brng)
             setComputedSpeed(speedKmh)
           }
@@ -159,7 +166,7 @@ export default function DriverDashboard() {
             reconnectAttempts: 0,
           })
 
-          // Update driver location in backend
+          // Update driver location in backend with accurate data
           if (user?.busNumber) {
             updateDriverLocation({
               driverId: user.id,
@@ -167,8 +174,8 @@ export default function DriverDashboard() {
               latitude: newLocation.latitude,
               longitude: newLocation.longitude,
               timestamp: newLocation.timestamp,
-              speed: computedSpeed,
-              heading: computedHeading,
+              speed: currentSpeed,
+              heading: currentHeading,
               accuracy: newLocation.accuracy,
             }).catch((error) => {
               console.error("Failed to update driver location:", error)

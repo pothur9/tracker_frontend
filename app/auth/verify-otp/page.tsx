@@ -43,19 +43,30 @@ export default function VerifyOTPPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (otp.length !== 6) {
+    if (otp.length !== 4) {
       toast({
         title: "Error",
-        description: "Please enter a valid 6-digit OTP",
+        description: "Please enter a valid 4-digit OTP",
         variant: "destructive",
       })
+      return
+    }
+
+    if (!signupData.sessionId) {
+      toast({
+        title: "Error",
+        description: "Session expired. Please sign up again.",
+        variant: "destructive",
+      })
+      router.push("/")
       return
     }
 
     setIsLoading(true)
 
     try {
-      const isValid = await verifyOTP(signupData.phone, otp, signupData.type === "driver" ? "driver" : "student")
+      // Verify OTP using 2factor API
+      const isValid = await verifyOTP(signupData.sessionId, otp)
 
       if (isValid) {
         // Get FCM token before creating the account so backend stores it
@@ -128,12 +139,27 @@ export default function VerifyOTPPage() {
     setIsResending(true)
 
     try {
-      await sendOTP(signupData.phone, signupData.type === "driver" ? "driver" : "student")
-      setCountdown(60)
-      toast({
-        title: "OTP Sent",
-        description: "A new OTP has been sent to your phone.",
-      })
+      // Send new OTP using 2factor API
+      const newSessionId = await sendOTP(signupData.phone)
+      
+      if (newSessionId) {
+        // Update sessionId in signupData
+        const updatedSignupData = { ...signupData, sessionId: newSessionId }
+        setSignupData(updatedSignupData)
+        sessionStorage.setItem("signupData", JSON.stringify(updatedSignupData))
+        
+        setCountdown(60)
+        toast({
+          title: "OTP Sent",
+          description: "A new OTP has been sent to your phone.",
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to resend OTP. Please try again.",
+          variant: "destructive",
+        })
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -181,7 +207,7 @@ export default function VerifyOTPPage() {
             </div>
             <CardTitle className="text-2xl font-serif">Verify Phone Number</CardTitle>
             <CardDescription>
-              We've sent a 6-digit code to {signupData.phone}
+              We've sent a 4-digit code to {signupData.phone}
               {signupData.type === "driver" && (
                 <span className="block mt-1 text-accent">Driver Account Verification</span>
               )}
@@ -194,14 +220,14 @@ export default function VerifyOTPPage() {
                 <Input
                   id="otp"
                   type="text"
-                  placeholder="123456"
+                  placeholder="1234"
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 4))}
                   className="text-center text-2xl tracking-widest"
-                  maxLength={6}
+                  maxLength={4}
                   required
                 />
-                <p className="text-xs text-muted-foreground text-center">For demo purposes, use: 123456</p>
+                <p className="text-xs text-muted-foreground text-center">For demo purposes, use: 1234</p>
               </div>
 
               <Button type="submit" className="w-full" size="lg" disabled={isLoading}>

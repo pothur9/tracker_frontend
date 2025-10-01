@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import { signIn } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { validatePhoneNumber } from "@/lib/validation"
 
 export default function DriverLoginPage() {
   const router = useRouter()
@@ -38,10 +39,12 @@ export default function DriverLoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (formData.phone.length < 10) {
+    // Validate phone number
+    const phoneValidation = validatePhoneNumber(formData.phone)
+    if (!phoneValidation.isValid) {
       toast({
-        title: "Error",
-        description: "Please enter a valid phone number",
+        title: "Invalid Phone Number",
+        description: phoneValidation.error,
         variant: "destructive",
       })
       return
@@ -108,8 +111,10 @@ export default function DriverLoginPage() {
                   placeholder="Enter your phone number"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
+                  maxLength={10}
                   required
                 />
+                <p className="text-xs text-muted-foreground">10 digits starting with 6-9</p>
               </div>
 
               {/* Password */}

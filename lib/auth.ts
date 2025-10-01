@@ -105,13 +105,31 @@ export const getCurrentUser = (): User | null => {
   return userData ? JSON.parse(userData) : null
 }
 
-export const verifyOTP = async (phone: string, otp: string, type: "student" | "driver" = "student"): Promise<boolean> => {
-  const path = type === "student" ? "/api/auth/user/otp/verify" : "/api/auth/driver/otp/verify"
-  const resp = await api(path, { method: "POST", body: { phone, code: otp } })
-  return !!resp.verified
+export const verifyOTP = async (sessionId: string, otp: string): Promise<boolean> => {
+  try {
+    const verifyResponse = await fetch(
+      `https://2factor.in/API/V1/3e5558da-7432-11ef-8b17-0200cd936042/SMS/VERIFY/${sessionId}/${otp}`
+    )
+    const verifyData = await verifyResponse.json()
+    return verifyData.Status === "Success"
+  } catch (error) {
+    console.error("Error verifying OTP:", error)
+    return false
+  }
 }
 
-export const sendOTP = async (phone: string, type: "student" | "driver" = "student"): Promise<void> => {
-  const path = type === "student" ? "/api/auth/user/otp/request" : "/api/auth/driver/otp/request"
-  await api(path, { method: "POST", body: { phone } })
+export const sendOTP = async (phone: string): Promise<string | null> => {
+  try {
+    const otpResponse = await fetch(
+      `https://2factor.in/API/V1/3e5558da-7432-11ef-8b17-0200cd936042/SMS/${phone}/AUTOGEN3/SVD`
+    )
+    const otpData = await otpResponse.json()
+    if (otpData.Status === "Success") {
+      return otpData.Details // returns sessionId
+    }
+    return null
+  } catch (error) {
+    console.error("Error sending OTP:", error)
+    return null
+  }
 }

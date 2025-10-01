@@ -1,102 +1,163 @@
 "use client"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Bus, Users, MapPin, Eye } from "lucide-react"
+import { Bus, Users, MapPin } from "lucide-react"
 import Link from "next/link"
 
 export default function HomePage() {
+  const [activeTab, setActiveTab] = useState<"student" | "driver">("student")
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex flex-col">
-   
-      <header className="p-6 text-center">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <Bus className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-serif font-bold text-foreground">TrackBus</h1>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+      {/* Header */}
+      <header className="w-full px-4 py-6 sm:px-6 sm:py-8">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="p-2 bg-primary/10 rounded-xl">
+              <Bus className="h-7 w-7 sm:h-9 sm:w-9 text-primary" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+              TrackBus
+            </h1>
+          </div>
+          <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
+            Real-time school bus tracking for students and parents
+          </p>
         </div>
-        <p className="text-muted-foreground text-lg">Real-time school bus tracking for students and parents</p>
       </header>
 
-    
-      <main className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-serif font-bold mb-2">Get Started</h2>
-            <p className="text-muted-foreground">Choose your account type to continue</p>
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6">
+        <div className="w-full max-w-md">
+          {/* Toggle Bar */}
+          <div className="mb-8">
+            <div className="bg-muted/50 backdrop-blur-sm p-1.5 rounded-xl border shadow-sm">
+              <div className="grid grid-cols-2 gap-1">
+                <button
+                  onClick={() => setActiveTab("student")}
+                  className={`
+                    flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200
+                    ${
+                      activeTab === "student"
+                        ? "bg-background text-foreground shadow-md scale-[0.98]"
+                        : "text-muted-foreground hover:text-foreground"
+                    }
+                  `}
+                >
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="text-sm sm:text-base">Student</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab("driver")}
+                  className={`
+                    flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200
+                    ${
+                      activeTab === "driver"
+                        ? "bg-background text-foreground shadow-md scale-[0.98]"
+                        : "text-muted-foreground hover:text-foreground"
+                    }
+                  `}
+                >
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="text-sm sm:text-base">Driver</span>
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Eye className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Demo Access</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">Preview the dashboards without creating an account</p>
-            <div className="flex gap-2">
-              <Link href="/dashboard/student" className="flex-1">
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  Student Demo
-                </Button>
-              </Link>
-              <Link href="/dashboard/driver" className="flex-1">
-                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                  Driver Demo
-                </Button>
-              </Link>
-            </div>
-          </div>
+          {/* Content Card */}
+          <Card className="border-2 shadow-xl">
+            <CardHeader className="text-center space-y-2 pb-6">
+              <div className="mx-auto mb-2">
+                <div
+                  className={`
+                    w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all duration-300
+                    ${activeTab === "student" ? "bg-primary/10" : "bg-accent/10"}
+                  `}
+                >
+                  {activeTab === "student" ? (
+                    <Users className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                  ) : (
+                    <MapPin className="h-8 w-8 sm:h-10 sm:w-10 text-accent" />
+                  )}
+                </div>
+              </div>
+              <CardTitle className="text-2xl sm:text-3xl font-bold">
+                {activeTab === "student" ? "Student / Parent" : "Bus Driver"}
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                {activeTab === "student"
+                  ? "Track your school bus in real-time"
+                  : "Share your location with students"}
+              </CardDescription>
+            </CardHeader>
 
-          <div className="space-y-4">
-            {/* Student/Parent Card */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
-              <Link href="/auth/student/signup">
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                    <Users className="h-6 w-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-xl">Student / Parent</CardTitle>
-                  <CardDescription>Track your school bus in real-time and get notifications</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" size="lg">
-                    Sign Up as Student
+            <CardContent className="space-y-4 pb-8">
+              {/* Sign Up Section */}
+              <div className="space-y-3">
+                <div className="text-center">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                    New User
+                  </h3>
+                </div>
+                <Link
+                  href={
+                    activeTab === "student"
+                      ? "/auth/student/signup"
+                      : "/auth/driver/signup"
+                  }
+                >
+                  <Button
+                    className={`
+                      w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all
+                      ${activeTab === "driver" ? "bg-accent hover:bg-accent/90" : ""}
+                    `}
+                    size="lg"
+                  >
+                    Sign Up as {activeTab === "student" ? "Student" : "Driver"}
                   </Button>
-                </CardContent>
-              </Link>
-            </Card>
+                </Link>
+              </div>
 
-            {/* Driver Card */}
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-primary/50">
-              <Link href="/auth/driver/signup">
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-3">
-                    <MapPin className="h-6 w-6 text-accent" />
-                  </div>
-                  <CardTitle className="text-xl">Bus Driver</CardTitle>
-                  <CardDescription>Share your location with students and parents</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full bg-transparent" variant="outline" size="lg">
-                    Sign Up as Driver
+              {/* Divider */}
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-muted"></div>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-4 text-muted-foreground font-medium">
+                    Already have an account?
+                  </span>
+                </div>
+              </div>
+
+              {/* Login Section */}
+              <div className="space-y-3">
+                <Link
+                  href={
+                    activeTab === "student"
+                      ? "/auth/student/login"
+                      : "/auth/driver/login"
+                  }
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 text-base font-semibold border-2 hover:bg-muted/50 transition-all"
+                    size="lg"
+                  >
+                    Login as {activeTab === "student" ? "Student" : "Driver"}
                   </Button>
-                </CardContent>
-              </Link>
-            </Card>
-          </div>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Login Links */}
-          <div className="text-center pt-6 border-t">
-            <p className="text-sm text-muted-foreground mb-4">Already have an account?</p>
-            <div className="flex gap-3">
-              <Link href="/auth/student/login" className="flex-1">
-                <Button variant="ghost" className="w-full">
-                  Student Login
-                </Button>
-              </Link>
-              <Link href="/auth/driver/login" className="flex-1">
-                <Button variant="ghost" className="w-full">
-                  Driver Login
-                </Button>
-              </Link>
-            </div>
+          {/* Footer Note */}
+          <div className="mt-6 text-center">
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Secure and reliable bus tracking solution
+            </p>
           </div>
         </div>
       </main>
