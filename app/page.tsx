@@ -16,7 +16,7 @@ export default function HomePage() {
         <p className="text-muted-foreground text-lg">Real-time school bus tracking for students and parents</p>
       </header>
 
-      {/* Main Content */}
+    
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center mb-8">
