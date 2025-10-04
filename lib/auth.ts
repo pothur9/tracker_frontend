@@ -62,7 +62,6 @@ export const signUp = async (userData: Partial<User>): Promise<User> => {
         busNumber: userData.busNumber,
         class: userData.class,
         section: userData.section,
-        password: (userData as any).password,
         // pass through fcmToken if the caller supplied it
         fcmToken: (userData as any).fcmToken,
       },
@@ -77,19 +76,18 @@ export const signUp = async (userData: Partial<User>): Promise<User> => {
         name: userData.name,
         phone: userData.phone,
         busNumber: userData.busNumber,
-        password: (userData as any).password,
       },
     })
     return persistAuth(resp.token, resp.driver, "driver")
   }
 }
 
-export const signIn = async (phone: string, password: string, type: "student" | "driver" = "student"): Promise<User> => {
+export const signInWithOTP = async (phone: string, type: "student" | "driver" = "student"): Promise<User> => {
   if (type === "student") {
-    const resp = await api("/api/auth/user/login", { method: "POST", body: { phone, password } })
+    const resp = await api("/api/auth/user/login", { method: "POST", body: { phone, verified: true } })
     return persistAuth(resp.token, resp.user, "student")
   } else {
-    const resp = await api("/api/auth/driver/login", { method: "POST", body: { phone, password } })
+    const resp = await api("/api/auth/driver/login", { method: "POST", body: { phone, verified: true } })
     return persistAuth(resp.token, resp.driver, "driver")
   }
 }

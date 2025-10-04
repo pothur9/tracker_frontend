@@ -9,28 +9,41 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Users, MapPin } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { verifyOTP, signUp, sendOTP } from "@/lib/auth"
+import { verifyOTP, signUp, sendOTP, signInWithOTP } from "@/lib/auth"
 import { api } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { getFcmToken } from "@/lib/fcm"
 import { Navbar } from "@/components/navbar"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function VerifyOTPPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { setUser } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [isResending, setIsResending] = useState(false)
   const [otp, setOtp] = useState("")
   const [signupData, setSignupData] = useState<any>(null)
+  const [loginData, setLoginData] = useState<any>(null)
   const [countdown, setCountdown] = useState(60)
 
   useEffect(() => {
-    const data = sessionStorage.getItem("signupData")
-    if (!data) {
+    // Check for signup data
+    const signup = sessionStorage.getItem("signupData")
+    // Check for login data
+    const login = localStorage.getItem("otpLoginData")
+    
+    if (!signup && !login) {
       router.push("/")
       return
     }
-    setSignupData(JSON.parse(data))
+    
+    if (signup) {
+      setSignupData(JSON.parse(signup))
+    }
+    if (login) {
+      setLoginData(JSON.parse(login))
+    }
   }, [router])
 
   useEffect(() => {
@@ -52,10 +65,11 @@ export default function VerifyOTPPage() {
       return
     }
 
-    if (!signupData.sessionId) {
+    const currentData = loginData || signupData
+    if (!currentData?.sessionId) {
       toast({
         title: "Error",
-        description: "Session expired. Please sign up again.",
+        description: "Session expired. Please try again.",
         variant: "destructive",
       })
       router.push("/")
@@ -66,54 +80,72 @@ export default function VerifyOTPPage() {
 
     try {
       // Verify OTP using 2factor API
-      const isValid = await verifyOTP(signupData.sessionId, otp)
+      const isValid = await verifyOTP(currentData.sessionId, otp)
 
       if (isValid) {
-        // Get FCM token before creating the account so backend stores it
-        let fcmToken: string | null = null
-        try {
-          fcmToken = await getFcmToken()
-        } catch {}
-        // Create the user account with optional fcmToken
-        await signUp({ ...signupData, fcmToken: fcmToken || undefined })
+        // Handle login flow
+        if (loginData) {
+          // OTP already verified by 2factor API, now login with verified flag
+          const loggedInUser = await signInWithOTP(loginData.phone, loginData.type)
+          setUser(loggedInUser)
 
-        // If student selected a school, map it to the account
-        if (signupData.type === "student" && signupData.schoolId) {
+          toast({
+            title: "Welcome back!",
+            description: "You have been successfully logged in.",
+          })
+
+          // Clear login data
+          localStorage.removeItem("otpLoginData")
+
+          // Redirect based on user type
+          router.push(loginData.type === "student" ? "/dashboard/student" : "/dashboard/driver")
+        } 
+        // Handle signup flow
+        else if (signupData) {
+          // Get FCM token before creating the account so backend stores it
+          let fcmToken: string | null = null
           try {
-            await api("/api/school/map/user", {
-              method: "POST",
-              body: { schoolId: signupData.schoolId },
-            })
-          } catch (e) {
-            // Non-blocking: mapping failure shouldn't prevent account creation
-            console.warn("School mapping failed:", e)
+            fcmToken = await getFcmToken()
+          } catch {}
+          
+          // Create the user account with optional fcmToken
+          const newUser = await signUp({ ...signupData, fcmToken: fcmToken || undefined })
+          setUser(newUser)
+
+          // If student selected a school, map it to the account
+          if (signupData.type === "student" && signupData.schoolId) {
+            try {
+              await api("/api/school/map/user", {
+                method: "POST",
+                body: { schoolId: signupData.schoolId },
+              })
+            } catch (e) {
+              // Non-blocking: mapping failure shouldn't prevent account creation
+              console.warn("School mapping failed:", e)
+            }
           }
-        }
-        // If driver selected a school, map it to the account
-        if (signupData.type === "driver" && signupData.schoolId) {
-          try {
-            await api("/api/school/map/driver", {
-              method: "POST",
-              body: { schoolId: signupData.schoolId },
-            })
-          } catch (e) {
-            console.warn("Driver school mapping failed:", e)
+          // If driver selected a school, map it to the account
+          if (signupData.type === "driver" && signupData.schoolId) {
+            try {
+              await api("/api/school/map/driver", {
+                method: "POST",
+                body: { schoolId: signupData.schoolId },
+              })
+            } catch (e) {
+              console.warn("Driver school mapping failed:", e)
+            }
           }
-        }
 
-        toast({
-          title: "Account Created!",
-          description: `Your ${signupData.type} account has been successfully created.`,
-        })
+          toast({
+            title: "Account Created!",
+            description: `Your ${signupData.type} account has been successfully created.`,
+          })
 
-        // Clear signup data
-        sessionStorage.removeItem("signupData")
+          // Clear signup data
+          sessionStorage.removeItem("signupData")
 
-        // Redirect based on user type
-        if (signupData.type === "student") {
-          router.push("/dashboard/student")
-        } else {
-          router.push("/dashboard/driver")
+          // Redirect based on user type
+          router.push(signupData.type === "student" ? "/dashboard/student" : "/dashboard/driver")
         }
       } else {
         toast({
@@ -137,16 +169,23 @@ export default function VerifyOTPPage() {
     if (countdown > 0) return
 
     setIsResending(true)
+    const currentData = loginData || signupData
 
     try {
       // Send new OTP using 2factor API
-      const newSessionId = await sendOTP(signupData.phone)
+      const newSessionId = await sendOTP(currentData.phone)
       
       if (newSessionId) {
-        // Update sessionId in signupData
-        const updatedSignupData = { ...signupData, sessionId: newSessionId }
-        setSignupData(updatedSignupData)
-        sessionStorage.setItem("signupData", JSON.stringify(updatedSignupData))
+        // Update sessionId
+        if (loginData) {
+          const updatedLoginData = { ...loginData, sessionId: newSessionId }
+          setLoginData(updatedLoginData)
+          localStorage.setItem("otpLoginData", JSON.stringify(updatedLoginData))
+        } else if (signupData) {
+          const updatedSignupData = { ...signupData, sessionId: newSessionId }
+          setSignupData(updatedSignupData)
+          sessionStorage.setItem("signupData", JSON.stringify(updatedSignupData))
+        }
         
         setCountdown(60)
         toast({
@@ -172,11 +211,17 @@ export default function VerifyOTPPage() {
   }
 
   const getBackUrl = () => {
-    if (!signupData) return "/"
-    return signupData.type === "student" ? "/auth/student/signup" : "/auth/driver/signup"
+    if (loginData) {
+      return loginData.type === "student" ? "/auth/student/login" : "/auth/driver/login"
+    }
+    if (signupData) {
+      return signupData.type === "student" ? "/auth/student/signup" : "/auth/driver/signup"
+    }
+    return "/"
   }
 
-  if (!signupData) {
+  const currentData = loginData || signupData
+  if (!currentData) {
     return null
   }
 
@@ -188,7 +233,7 @@ export default function VerifyOTPPage() {
         <Card>
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              {signupData.type === "student" ? (
+              {currentData.type === "student" ? (
                 <Users className="h-8 w-8 text-primary" />
               ) : (
                 <MapPin className="h-8 w-8 text-primary" />
@@ -196,9 +241,11 @@ export default function VerifyOTPPage() {
             </div>
             <CardTitle className="text-2xl font-serif">Verify Phone Number</CardTitle>
             <CardDescription>
-              We've sent a 4-digit code to {signupData.phone}
-              {signupData.type === "driver" && (
-                <span className="block mt-1 text-accent">Driver Account Verification</span>
+              We've sent a 4-digit code to {currentData.phone}
+              {currentData.type === "driver" && (
+                <span className="block mt-1 text-accent">
+                  {loginData ? "Driver Login Verification" : "Driver Account Verification"}
+                </span>
               )}
             </CardDescription>
           </CardHeader>
@@ -225,8 +272,10 @@ export default function VerifyOTPPage() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Verifying...
                   </>
+                ) : loginData ? (
+                  "Verify & Login"
                 ) : (
-                  `Create ${signupData.type === "student" ? "Student" : "Driver"} Account`
+                  `Create ${currentData.type === "student" ? "Student" : "Driver"} Account`
                 )}
               </Button>
             </form>

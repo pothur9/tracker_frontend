@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Eye, EyeOff, MapPin } from "lucide-react"
+import { Loader2, MapPin } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { signIn } from "@/lib/auth"
+import { sendOTP } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { validatePhoneNumber } from "@/lib/validation"
@@ -19,17 +19,9 @@ import { Navbar } from "@/components/navbar"
 export default function DriverLoginPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const { user, setUser } = useAuth()
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [formData, setFormData] = useState({
-    phone: "",
-    password: "",
-  })
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+  const [phone, setPhone] = useState("")
 
   useEffect(() => {
     if (user?.type === "driver") {
@@ -41,7 +33,7 @@ export default function DriverLoginPage() {
     e.preventDefault()
 
     // Validate phone number
-    const phoneValidation = validatePhoneNumber(formData.phone)
+    const phoneValidation = validatePhoneNumber(phone)
     if (!phoneValidation.isValid) {
       toast({
         title: "Invalid Phone Number",
@@ -54,22 +46,31 @@ export default function DriverLoginPage() {
     setIsLoading(true)
 
     try {
-      // Real driver login
-      const signedInUser = await signIn(formData.phone, formData.password, "driver")
-
-      // Update global auth state for immediate availability across the app
-      setUser(signedInUser)
+      // Send OTP
+      const sessionId = await sendOTP(phone)
+      
+      if (!sessionId) {
+        throw new Error("Failed to send OTP")
+      }
 
       toast({
-        title: "Welcome back!",
-        description: "You have been successfully logged in.",
+        title: "OTP Sent",
+        description: "Please check your phone for the verification code.",
       })
 
-      router.push("/dashboard/driver")
+      // Store login data and redirect to OTP verification
+      localStorage.setItem("otpLoginData", JSON.stringify({
+        phone,
+        type: "driver",
+        isLogin: true,
+        sessionId,
+      }))
+
+      router.push("/auth/verify-otp")
     } catch (error) {
       toast({
         title: "Error",
-        description: "Invalid phone number or password",
+        description: "Failed to send OTP. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -99,46 +100,23 @@ export default function DriverLoginPage() {
                   id="phone"
                   type="tel"
                   placeholder="Enter your phone number"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   maxLength={10}
                   required
                 />
                 <p className="text-xs text-muted-foreground">10 digits starting with 6-9</p>
               </div>
 
-              {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange("password", e.target.value)}
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-
               <div className="bg-primary/10 p-4 rounded-lg">
                 <p className="text-sm text-primary">
-                  <strong>Driver Responsibilities:</strong> Ensure location sharing is enabled during school hours for
-                  student safety.
+                  <strong>Secure Login:</strong> We'll send a one-time password (OTP) to your phone number for verification.
+                </p>
+              </div>
+
+              <div className="bg-accent/10 p-3 rounded-lg">
+                <p className="text-xs text-accent-foreground">
+                  <strong>Driver Responsibilities:</strong> Ensure location sharing is enabled during school hours for student safety.
                 </p>
               </div>
 
@@ -146,19 +124,15 @@ export default function DriverLoginPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    Sending OTP...
                   </>
                 ) : (
-                  "Sign In"
+                  "Send OTP"
                 )}
               </Button>
             </form>
 
-            <div className="mt-6 text-center space-y-4">
-              <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
-                Forgot your password?
-              </Link>
-
+            <div className="mt-6 text-center">
               <div className="border-t pt-4">
                 <p className="text-sm text-muted-foreground">
                   Don't have a driver account?{" "}

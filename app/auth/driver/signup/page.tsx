@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation"
 import { sendOTP } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
-import { validatePhoneNumber, validatePassword } from "@/lib/validation"
+import { validatePhoneNumber } from "@/lib/validation"
 import { Navbar } from "@/components/navbar"
 
 export default function DriverSignupPage() {
@@ -30,8 +30,6 @@ export default function DriverSignupPage() {
     name: "",
     phone: "",
     busNumber: "",
-    password: "",
-    confirmPassword: "",
   })
 
   // Load list of schools for dropdown
@@ -87,26 +85,6 @@ export default function DriverSignupPage() {
       toast({
         title: "Invalid Phone Number",
         description: phoneValidation.error,
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Validate password
-    const passwordValidation = validatePassword(formData.password)
-    if (!passwordValidation.isValid) {
-      toast({
-        title: "Invalid Password",
-        description: passwordValidation.error,
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
         variant: "destructive",
       })
       return
@@ -301,31 +279,10 @@ export default function DriverSignupPage() {
                     />
                   </div>
 
-                  {/* Password */}
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="Create a password"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
-                      required
-                    />
-                    <p className="text-xs text-muted-foreground">Min 8 characters, 1 capital letter, 1 special character</p>
-                  </div>
-
-                  {/* Confirm Password */}
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirm your password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                      required
-                    />
+                  <div className="bg-primary/10 p-3 rounded-lg">
+                    <p className="text-xs text-primary">
+                      <strong>Secure Signup:</strong> We'll send a one-time password (OTP) to your phone number to verify your account.
+                    </p>
                   </div>
 
                   <div className=" gap-3 w-full">
