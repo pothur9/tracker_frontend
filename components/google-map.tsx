@@ -34,6 +34,9 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
   const stopMarkersRef = useRef<any[]>([])
   const stopPolylineRef = useRef<any>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  // Tracks whether the user has manually interacted with the map (zoom/drag),
+  // in which case we should not auto-adjust viewport (zoom/center/fitBounds)
+  const userAdjustedViewRef = useRef<boolean>(false)
 
   const isFiniteNumber = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n)
   const isValidLatLng = (lat: unknown, lng: unknown): lat is number & (typeof lng extends number ? number : never) => {
@@ -129,7 +132,7 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
           : defaultCenter
 
       mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
-        zoom: 16,
+        zoom: 17,
         center,
         styles: [
           { elementType: "geometry", stylers: [{ color: "#1f2937" }] },
@@ -148,6 +151,14 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
+      })
+
+      // Mark that the user has adjusted the view if they zoom or drag
+      mapInstanceRef.current.addListener("zoom_changed", () => {
+        userAdjustedViewRef.current = true
+      })
+      mapInstanceRef.current.addListener("dragstart", () => {
+        userAdjustedViewRef.current = true
       })
 
       // Add click listener if onLocationSelect is provided
@@ -248,7 +259,7 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
     requestAnimationFrame(animate)
 
     // Keep map centered on the moving bus
-    if (isValidLatLng(position.lat, position.lng)) {
+    if (isValidLatLng(position.lat, position.lng) && !userAdjustedViewRef.current) {
       mapInstanceRef.current.setCenter(position)
     }
 
@@ -302,7 +313,9 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
         const b = new window.google.maps.LatLngBounds()
         b.extend(origin)
         b.extend(destination)
-        mapInstanceRef.current.fitBounds(b)
+        if (!userAdjustedViewRef.current) {
+          mapInstanceRef.current.fitBounds(b)
+        }
       }
 
       const tryProxy = async () => {
@@ -328,11 +341,15 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
                 const sw = new window.google.maps.LatLng(resp.bounds.south, resp.bounds.west)
                 const ne = new window.google.maps.LatLng(resp.bounds.north, resp.bounds.east)
                 const bounds = new window.google.maps.LatLngBounds(sw, ne)
-                mapInstanceRef.current.fitBounds(bounds)
+                if (!userAdjustedViewRef.current) {
+                  mapInstanceRef.current.fitBounds(bounds)
+                }
               } else {
                 const b = new window.google.maps.LatLngBounds()
                 decoded.forEach((p: any) => b.extend(p))
-                mapInstanceRef.current.fitBounds(b)
+                if (!userAdjustedViewRef.current) {
+                  mapInstanceRef.current.fitBounds(b)
+                }
               }
               return true
             }
@@ -373,11 +390,15 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
                       new window.google.maps.LatLng(south, west),
                       new window.google.maps.LatLng(north, east),
                     )
-                    mapInstanceRef.current.fitBounds(bounds)
+                    if (!userAdjustedViewRef.current) {
+                      mapInstanceRef.current.fitBounds(bounds)
+                    }
                   } else if (Array.isArray(path) && path.length) {
                     const b = new window.google.maps.LatLngBounds()
                     path.forEach((p: any) => b.extend(p))
-                    mapInstanceRef.current.fitBounds(b)
+                    if (!userAdjustedViewRef.current) {
+                      mapInstanceRef.current.fitBounds(b)
+                    }
                   }
                 }
                 return
@@ -459,7 +480,7 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
       sorted.forEach((s) => {
         if (Number.isFinite(s.lat) && Number.isFinite(s.lng)) b.extend(new window.google.maps.LatLng(s.lat, s.lng))
       })
-      try { mapInstanceRef.current.fitBounds(b) } catch {}
+      try { if (!userAdjustedViewRef.current) { mapInstanceRef.current.fitBounds(b) } } catch {}
     }
   }, [isLoaded, stops, currentStopIndex, driverLocation])
 
