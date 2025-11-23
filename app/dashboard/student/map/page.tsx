@@ -6,7 +6,7 @@ import { Navigation, Crosshair, MapPin } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { getDriverLocation, getCurrentLocation, locationService, type DriverLocation, type Location } from "@/lib/location"
+import { getDriverLocation, getCurrentLocation, locationService, viewportService, type DriverLocation, type Location, type Viewport } from "@/lib/location"
 import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -22,6 +22,7 @@ export default function StudentMapPage() {
   const [schoolCoords, setSchoolCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [stops, setStops] = useState<Array<{ lat: number; lng: number; name?: string; order?: number }>>([])
   const [currentStopIndex, setCurrentStopIndex] = useState<number>(-1)
+  const [controlledViewport, setControlledViewport] = useState<Viewport | null>(null)
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function StudentMapPage() {
   // Fetch initial locations and subscribe for real-time driver updates
   useEffect(() => {
     let unsub: (() => void) | null = null
+    let unsubVp: (() => void) | null = null
     const init = async () => {
       if (!user?.busNumber) return
       try {
@@ -58,10 +60,15 @@ export default function StudentMapPage() {
         setDriverLocation(loc)
         setIsLoading(false)
       })
+      // Subscribe to driver's viewport to mirror view
+      unsubVp = viewportService.subscribe(user.busNumber, (vp) => {
+        setControlledViewport(vp)
+      })
     }
     init()
     return () => {
       if (unsub) unsub()
+      if (unsubVp) unsubVp()
     }
   }, [user?.busNumber])
 
@@ -147,6 +154,7 @@ export default function StudentMapPage() {
             showRoute
             stops={stops}
             currentStopIndex={currentStopIndex}
+            controlledViewport={controlledViewport}
             className="w-full h-full"
           />
         </div>

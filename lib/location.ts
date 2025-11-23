@@ -14,6 +14,11 @@ export interface DriverLocation extends Location {
   heading?: number
 }
 
+export interface Viewport {
+  center: { lat: number; lng: number }
+  zoom: number
+}
+
 // No local mock storage; we use backend now
 
 export const getCurrentLocation = (): Promise<Location> => {
@@ -33,7 +38,11 @@ export const getCurrentLocation = (): Promise<Location> => {
         })
       },
       (error) => {
-        reject(error)
+        const code = (error as GeolocationPositionError)?.code
+        if (code === 1) reject(new Error("Location permission denied. Enable location permissions for this site."))
+        else if (code === 2) reject(new Error("Location unavailable. Turn on GPS/location services and try again."))
+        else if (code === 3) reject(new Error("Location request timed out. Move to an open area or try again."))
+        else reject(new Error(error?.message || "Failed to access location"))
       },
       {
         enableHighAccuracy: true,
@@ -71,6 +80,21 @@ export const watchLocation = (callback: (location: Location) => void): number =>
 
 export const stopWatchingLocation = (watchId: number): void => {
   navigator.geolocation.clearWatch(watchId)
+}
+
+export const ensureGeolocationReady = async (): Promise<void> => {
+  if (typeof window === 'undefined') throw new Error('Location not available in this context')
+  const isSupported = typeof navigator !== 'undefined' && 'geolocation' in navigator
+  if (!isSupported) throw new Error('Geolocation is not supported')
+  const isLocalhost = typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  if (!isLocalhost && typeof window !== 'undefined' && !(window as any).isSecureContext) throw new Error('Location requires HTTPS. Open the site over https://')
+  const navAny = navigator as any
+  if (navAny?.permissions?.query) {
+    try {
+      const status = await navAny.permissions.query({ name: 'geolocation' })
+      if (status?.state === 'denied') throw new Error('Location permission denied. Enable it in browser settings.')
+    } catch {}
+  }
 }
 
 export interface LocationConnectionStatus {
@@ -254,3 +278,88 @@ export const updateDriverLocation = async (location: DriverLocation): Promise<vo
     },
   )
 }
+
+// --- Viewport sync helpers ---
+export const updateDriverViewport = async (busNumber: string, viewport: Viewport): Promise<void> => {
+  try {
+    await api(
+      "/api/location/viewport/update",
+      {
+        method: "POST",
+        body: {
+          busNumber,
+          center: viewport.center,
+          zoom: viewport.zoom,
+        },
+      },
+    )
+  } catch {
+    // best-effort; ignore if endpoint not available
+  }
+}
+
+export const getDriverViewport = async (busNumber: string): Promise<Viewport | null> => {
+  try {
+    const resp = await api(`/api/location/viewport/latest?busNumber=${encodeURIComponent(busNumber)}`)
+    if (!resp || !resp.center) return null
+    const lat = Number(resp.center.lat)
+    const lng = Number(resp.center.lng)
+    const zoom = Number(resp.zoom)
+    if (![lat, lng, zoom].every((v) => Number.isFinite(v))) return null
+    return { center: { lat, lng }, zoom }
+  } catch {
+    return null
+  }
+}
+
+export interface RealTimeViewportService {
+  subscribe: (busNumber: string, callback: (viewport: Viewport | null) => void) => () => void
+}
+
+class ViewportSyncService implements RealTimeViewportService {
+  private intervals: Map<string, NodeJS.Timeout> = new Map()
+  private subscribers: Map<string, Set<(v: Viewport | null) => void>> = new Map()
+
+  subscribe(busNumber: string, callback: (viewport: Viewport | null) => void): () => void {
+    if (!this.subscribers.has(busNumber)) {
+      this.subscribers.set(busNumber, new Set())
+    }
+    this.subscribers.get(busNumber)!.add(callback)
+
+    if (!this.intervals.has(busNumber)) {
+      this.start(busNumber)
+    }
+
+    return () => {
+      const set = this.subscribers.get(busNumber)
+      if (set) {
+        set.delete(callback)
+        if (set.size === 0) {
+          this.stop(busNumber)
+          this.subscribers.delete(busNumber)
+        }
+      }
+    }
+  }
+
+  private start(busNumber: string) {
+    const poll = async () => {
+      const vp = await getDriverViewport(busNumber)
+      const subs = this.subscribers.get(busNumber)
+      if (subs) subs.forEach((cb) => cb(vp))
+    }
+    poll()
+    const id = setInterval(poll, 3000)
+    this.intervals.set(busNumber, id)
+  }
+
+  private stop(busNumber: string) {
+    const id = this.intervals.get(busNumber)
+    if (id) {
+      clearInterval(id)
+      this.intervals.delete(busNumber)
+    }
+  }
+}
+
+export const viewportService = new ViewportSyncService()

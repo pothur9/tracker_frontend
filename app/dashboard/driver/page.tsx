@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
 import { MapPin, Users, Navigation, Phone, Bell, Power, Clock, Wifi } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
 import { BottomNavigation } from "@/components/bottom-navigation"
@@ -16,6 +15,7 @@ import {
   updateDriverLocation,
   watchLocation,
   stopWatchingLocation,
+  ensureGeolocationReady,
   type Location,
 } from "@/lib/location"
 import { useRouter } from "next/navigation"
@@ -26,6 +26,7 @@ export default function DriverDashboard() {
   const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
+  const [isTripStarted, setIsTripStarted] = useState(false)
   const [isLocationSharing, setIsLocationSharing] = useState(false)
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null)
   const [lastLocation, setLastLocation] = useState<Location | null>(null)
@@ -69,18 +70,41 @@ export default function DriverDashboard() {
     }
   }, [user, router])
 
-  // Always start sharing on mount when a driver is present (no user toggle)
+  // Restore trip state from localStorage on mount
   useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      if (!user?.busNumber || cancelled) return
-      if (!isLocationSharing) {
-        await handleLocationToggle(true)
-        try { await api('/api/driver/sharing', { method: 'POST', body: { isSharing: true } }) } catch {}
-        if (typeof window !== 'undefined') localStorage.setItem('driver_location_sharing', 'on')
+    if (!user?.busNumber || typeof window === 'undefined') return
+    // Skip if already sharing (already restored)
+    if (isLocationSharing) return
+
+    const savedTripState = localStorage.getItem('driver_trip_started')
+    const savedSessionStart = localStorage.getItem('driver_session_start_time')
+    
+    if (savedTripState === 'true' && savedSessionStart) {
+      // Restore trip state
+      const sessionStartDate = new Date(savedSessionStart)
+      // Only restore if session start time is valid and not too old (e.g., within 24 hours)
+      const now = new Date()
+      const hoursDiff = (now.getTime() - sessionStartDate.getTime()) / (1000 * 60 * 60)
+      
+      if (hoursDiff < 24 && !isNaN(sessionStartDate.getTime())) {
+        // Set trip state first (so button shows correctly)
+        setIsTripStarted(true)
+        setSessionStartTime(sessionStartDate)
+        // Restart location sharing (this will set isLoading and then clear it)
+        handleLocationToggle(true).catch(() => {
+          // If restoration fails, clear the saved state
+          localStorage.removeItem('driver_trip_started')
+          localStorage.removeItem('driver_session_start_time')
+          setIsTripStarted(false)
+          setSessionStartTime(null)
+          setIsLoading(false)
+        })
+      } else {
+        // Clear old session data
+        localStorage.removeItem('driver_trip_started')
+        localStorage.removeItem('driver_session_start_time')
       }
-    })()
-    return () => { cancelled = true }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.busNumber])
 
@@ -118,6 +142,13 @@ export default function DriverDashboard() {
 
     try {
       if (enabled) {
+        await ensureGeolocationReady()
+        // Stop any existing watcher first to avoid duplicates
+        if (watchId !== null) {
+          stopWatchingLocation(watchId)
+          setWatchId(null)
+        }
+        
         // Start location sharing
         const location = await getCurrentLocation()
         setCurrentLocation(location)
@@ -189,19 +220,28 @@ export default function DriverDashboard() {
           }
         })
 
+        const startTime = new Date()
         setWatchId(id)
         setIsLocationSharing(true)
-        setSessionStartTime(new Date())
+        setIsTripStarted(true)
+        setSessionStartTime(startTime)
         setConnectionStatus({
           isConnected: true,
           lastUpdate: new Date(),
           error: null,
           reconnectAttempts: 0,
         })
+        setIsLoading(false) // Reset loading state immediately after starting
+
+        // Save trip state to localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('driver_trip_started', 'true')
+          localStorage.setItem('driver_session_start_time', startTime.toISOString())
+        }
 
         toast({
-          title: "Location Sharing Started",
-          description: "Students can now track your location",
+          title: "Trip Started",
+          description: "Location sharing is now active. Students can track your location.",
         })
       } else {
         // Stop location sharing
@@ -211,6 +251,7 @@ export default function DriverDashboard() {
         }
 
         setIsLocationSharing(false)
+        setIsTripStarted(false)
         setSessionStartTime(null)
         setConnectionStatus({
           isConnected: false,
@@ -218,10 +259,17 @@ export default function DriverDashboard() {
           error: null,
           reconnectAttempts: 0,
         })
+        setIsLoading(false) // Reset loading state immediately after stopping
+
+        // Clear trip state from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('driver_trip_started')
+          localStorage.removeItem('driver_session_start_time')
+        }
 
         toast({
-          title: "Location Sharing Stopped",
-          description: "Students can no longer track your location",
+          title: "Trip Stopped",
+          description: "Location sharing has been stopped. Students can no longer track your location.",
         })
       }
     } catch (error) {
@@ -234,7 +282,7 @@ export default function DriverDashboard() {
 
       toast({
         title: "Error",
-        description: "Failed to access location. Please check permissions.",
+        description: error instanceof Error ? error.message : "Failed to access location. Please check permissions.",
         variant: "destructive",
       })
     } finally {
@@ -321,10 +369,10 @@ export default function DriverDashboard() {
               <span className="text-muted-foreground">Bus Number</span>
               <p className="font-medium">{currentUser.busNumber || "-"}</p>
             </div>
-            <div>
+            {/* <div>
               <span className="text-muted-foreground">Driver ID</span>
               <p className="font-mono">{currentUser.id}</p>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
         {/* Connection Status */}
@@ -332,49 +380,75 @@ export default function DriverDashboard() {
           <ConnectionStatus status={connectionStatus} onReconnect={() => handleLocationToggle(false)} />
         )}
 
-        {/* Location Sharing Control */}
+        {/* Trip Control */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Power className="h-5 w-5" />
-              Location Sharing
+              <Navigation className="h-5 w-5" />
+              Trip Control
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Share Location with Students</p>
-                <p className="text-sm text-muted-foreground">
-                  {isLocationSharing ? "Students can track your location" : "Location sharing is disabled"}
-                </p>
-              </div>
-              {/* Disable user control: always on */}
-              <Switch checked={true} onCheckedChange={() => {}} disabled />
+            <div className="flex flex-col sm:flex-row gap-3">
+              {!isTripStarted ? (
+                <Button
+                  onClick={() => handleLocationToggle(true)}
+                  disabled={isLoading}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  size="lg"
+                >
+                  <Navigation className="h-5 w-5 mr-2" />
+                  Start Trip
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => handleLocationToggle(false)}
+                  disabled={isLoading && !isLocationSharing}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  size="lg"
+                >
+                  <Power className="h-5 w-5 mr-2" />
+                  Stop Trip
+                </Button>
+              )}
             </div>
 
-            {isLocationSharing && (
-              <div className="bg-primary/10 p-3 rounded-lg space-y-2">
+            {isTripStarted && (
+              <div className="bg-primary/10 p-4 rounded-lg space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Session Time</span>
+                    <span className="text-sm font-medium">Trip Duration</span>
                   </div>
                   <span className="font-mono text-lg font-bold text-primary">{formatSessionTime()}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Wifi className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">Updates Sent</span>
+                    <Power className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Location Sharing</span>
                   </div>
-                  <span className="text-sm font-bold text-primary">{locationUpdateCount}</span>
+                  <Badge variant="default" className="bg-green-600">
+                    Active
+                  </Badge>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Your location is being shared with students. Click "Stop Trip" to end location sharing.
+                </p>
+              </div>
+            )}
+
+            {!isTripStarted && (
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground text-center">
+                  Click "Start Trip" to begin sharing your location with students.
+                </p>
               </div>
             )}
           </CardContent>
         </Card>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 gap-4">
+        {/* <div className="grid grid-cols-2 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
               <Users className="h-8 w-8 text-primary mx-auto mb-2" />
@@ -390,10 +464,10 @@ export default function DriverDashboard() {
               <p className="text-sm text-muted-foreground">GPS Status</p>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         {/* Map Preview */}
-        <Card>
+        {/* <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Current Location</CardTitle>
             <Button variant="outline" size="sm" asChild>
@@ -408,7 +482,7 @@ export default function DriverDashboard() {
               {currentLocation ? (
                 <GoogleMap
                   driverLocation={{
-                    /* Use currentUser for demo support */
+                    Use currentUser for demo support 
                     driverId: currentUser.id,
                     busNumber: currentUser.busNumber || "",
                     latitude: currentLocation.latitude,
@@ -433,10 +507,10 @@ export default function DriverDashboard() {
               )}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Quick Actions */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
@@ -454,7 +528,7 @@ export default function DriverDashboard() {
               Route Information
             </Button>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Bottom Navigation */}

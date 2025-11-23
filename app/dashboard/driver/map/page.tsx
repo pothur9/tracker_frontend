@@ -8,7 +8,7 @@ import { Navigation, Users, MapPin, Power, Plus, Locate } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
 import { BottomNavigation } from "@/components/bottom-navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { getCurrentLocation, type Location, type DriverLocation, watchLocation, stopWatchingLocation, updateDriverLocation } from "@/lib/location"
+import { getCurrentLocation, type Location, type DriverLocation, watchLocation, stopWatchingLocation, updateDriverLocation, updateDriverViewport } from "@/lib/location"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/navbar"
@@ -247,6 +247,11 @@ export default function DriverMapPage() {
           stops={stops}
           currentStopIndex={currentStopIndex}
           onLocationSelect={handleMapClick}
+          onViewportChange={(center, zoom) => {
+            if (!user?.busNumber) return
+            // Best-effort; ignore errors
+            updateDriverViewport(user.busNumber, { center, zoom }).catch(() => {})
+          }}
           className="w-full h-full"
           />
         </div>

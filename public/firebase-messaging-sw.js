@@ -17,13 +17,13 @@ try {
 
 // Hardcode your client config here (public info; not secret)
 firebase.initializeApp({
-  apiKey: "AIzaSyAdXMi37-Rv-0hV6teopW2FMwoud9mjGaU",
-  authDomain: "svdd-c3198.firebaseapp.com",
-  projectId: "svdd-c3198",
-  storageBucket: "svdd-c3198.firebasestorage.app",
-  messagingSenderId: "849894574211",
-  appId: "1:849894574211:web:2e8465d84311bdceb3b3b6",
-  // measurementId optional
+  apiKey: "AIzaSyC7GjyNia5HcVs3YCd1nl2Acs8hHuuFNOQ",
+  authDomain: "ambari-ab822.firebaseapp.com",
+  projectId: "ambari-ab822",
+  storageBucket: "ambari-ab822.firebasestorage.app",
+  messagingSenderId: "615446413788",
+  appId: "1:615446413788:web:01ff0378a1d29f19770f19",
+  measurementId: "G-Y7R7CK8BQN"
 });
 
 const messaging = firebase.messaging();

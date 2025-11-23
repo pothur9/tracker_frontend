@@ -14,6 +14,10 @@ interface GoogleMapProps {
   showRoute?: boolean
   stops?: StopPoint[]
   currentStopIndex?: number
+  initialCenter?: { lat: number; lng: number }
+  initialZoom?: number
+  onViewportChange?: (center: { lat: number; lng: number }, zoom: number) => void
+  controlledViewport?: { center: { lat: number; lng: number }; zoom: number } | null
 }
 
 declare global {
@@ -23,7 +27,7 @@ declare global {
   }
 }
 
-export function GoogleMap({ driverLocation, className, onLocationSelect, schoolLocation = null, showRoute = true, stops = [], currentStopIndex = -1 }: GoogleMapProps) {
+export function GoogleMap({ className, driverLocation, onLocationSelect, schoolLocation = null, showRoute = true, stops = [], currentStopIndex = -1, initialCenter, initialZoom, onViewportChange, controlledViewport = null }: GoogleMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
   const markerRef = useRef<any>(null)
@@ -125,14 +129,14 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
     if (!window.google?.maps?.Map) return
 
     if (!mapInstanceRef.current) {
-      const defaultCenter = { lat: 40.7128, lng: -74.006 } // New York City
+      const defaultCenter = initialCenter ?? { lat: 40.7128, lng: -74.006 } // New York City
       const center =
         driverLocation && isValidLatLng(driverLocation.latitude, driverLocation.longitude)
           ? { lat: driverLocation.latitude, lng: driverLocation.longitude }
           : defaultCenter
 
       mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
-        zoom: 17,
+        zoom: initialZoom ?? 17,
         center,
         styles: [
           { elementType: "geometry", stylers: [{ color: "#1f2937" }] },
@@ -156,9 +160,19 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
       // Mark that the user has adjusted the view if they zoom or drag
       mapInstanceRef.current.addListener("zoom_changed", () => {
         userAdjustedViewRef.current = true
+        if (onViewportChange) {
+          const c = mapInstanceRef.current.getCenter()
+          const z = mapInstanceRef.current.getZoom()
+          if (c && typeof z === 'number') onViewportChange({ lat: c.lat(), lng: c.lng() }, z)
+        }
       })
-      mapInstanceRef.current.addListener("dragstart", () => {
+      mapInstanceRef.current.addListener("dragend", () => {
         userAdjustedViewRef.current = true
+        if (onViewportChange) {
+          const c = mapInstanceRef.current.getCenter()
+          const z = mapInstanceRef.current.getZoom()
+          if (c && typeof z === 'number') onViewportChange({ lat: c.lat(), lng: c.lng() }, z)
+        }
       })
 
       // Add click listener if onLocationSelect is provided
@@ -180,15 +194,7 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
         map: mapInstanceRef.current,
       })
 
-      // Initialize polyline for ordered stops
-      stopPolylineRef.current = new window.google.maps.Polyline({
-        path: [],
-        geodesic: true,
-        strokeColor: "#f59e0b", // amber
-        strokeOpacity: 0.9,
-        strokeWeight: 3,
-        map: mapInstanceRef.current,
-      })
+      // Stop polyline removed - stops will show as individual markers only
     }
   }, [isLoaded, onLocationSelect, driverLocation])
 
@@ -215,11 +221,11 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
     if (!markerRef.current) {
       const initialIcon = {
         path: "M12 2C13.1 2 14 2.9 14 4V6H18C18.55 6 19 6.45 19 7V17H17.5C17.5 18.38 16.38 19.5 15 19.5S12.5 18.38 12.5 17H7.5C7.5 18.38 6.38 19.5 5 19.5S2.5 18.38 2.5 17H1V7C1 6.45 1.45 6 2 6H6V4C6 2.9 6.9 2 8 2H12M8 4V6H12V4H8M6 8V10H8V8H6M10 8V10H12V8H10M14 8V10H16V8H14M18 8V10H20V8H18M5 15.5C5.83 15.5 6.5 16.17 6.5 17S5.83 18.5 5 18.5 3.5 17.83 3.5 17 4.17 15.5 5 15.5M15 15.5C15.83 15.5 16.5 16.17 16.5 17S15.83 18.5 15 18.5 13.5 17.83 13.5 17 14.17 15.5 15 15.5Z",
-        fillColor: "#10b981",
+        fillColor: "#FDB813", // Yellow school bus color
         fillOpacity: 1,
-        strokeColor: "#ffffff",
+        strokeColor: "#000000", // Black outline for better visibility
         strokeWeight: 2,
-        scale: 1.5,
+        scale: 1.8, // Slightly larger for better visibility
         anchor: new window.google.maps.Point(12, 12),
         rotation: 0,
       }
@@ -259,11 +265,11 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
     requestAnimationFrame(animate)
 
     // Keep map centered on the moving bus
-    if (isValidLatLng(position.lat, position.lng) && !userAdjustedViewRef.current) {
+    if (isValidLatLng(position.lat, position.lng) && !userAdjustedViewRef.current && !controlledViewport) {
       mapInstanceRef.current.setCenter(position)
     }
 
-  }, [isLoaded, driverLocation])
+  }, [isLoaded, driverLocation, controlledViewport])
 
   // Update or place school marker and route line
   useEffect(() => {
@@ -273,14 +279,15 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
     if (schoolLocation && isValidLatLng(schoolLocation.lat, schoolLocation.lng)) {
       const position = { lat: schoolLocation.lat, lng: schoolLocation.lng }
       if (!schoolMarkerRef.current) {
+        // School building icon with triangular roof and multiple windows
         const schoolIcon = {
-          path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z",
-          fillColor: "#3b82f6",
+          path: "M12 1L3 7v1h1v11h5v-4h4v4h5V8h1V7L12 1zM7 15H5v-2h2v2zm0-3H5v-2h2v2zm5 3h-2v-2h2v2zm0-3h-2v-2h2v2zm5 3h-2v-2h2v2zm0-3h-2v-2h2v2z",
+          fillColor: "#dc2626", // Darker red for school
           fillOpacity: 1,
           strokeColor: "#ffffff",
-          strokeWeight: 2,
-          scale: 1.4,
-          anchor: new window.google.maps.Point(12, 20),
+          strokeWeight: 2.5,
+          scale: 2.2,
+          anchor: new window.google.maps.Point(12, 19),
         }
         schoolMarkerRef.current = new window.google.maps.Marker({
           position,
@@ -313,7 +320,7 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
         const b = new window.google.maps.LatLngBounds()
         b.extend(origin)
         b.extend(destination)
-        if (!userAdjustedViewRef.current) {
+        if (!userAdjustedViewRef.current && !controlledViewport) {
           mapInstanceRef.current.fitBounds(b)
         }
       }
@@ -341,13 +348,13 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
                 const sw = new window.google.maps.LatLng(resp.bounds.south, resp.bounds.west)
                 const ne = new window.google.maps.LatLng(resp.bounds.north, resp.bounds.east)
                 const bounds = new window.google.maps.LatLngBounds(sw, ne)
-                if (!userAdjustedViewRef.current) {
+                if (!userAdjustedViewRef.current && !controlledViewport) {
                   mapInstanceRef.current.fitBounds(bounds)
                 }
               } else {
                 const b = new window.google.maps.LatLngBounds()
                 decoded.forEach((p: any) => b.extend(p))
-                if (!userAdjustedViewRef.current) {
+                if (!userAdjustedViewRef.current && !controlledViewport) {
                   mapInstanceRef.current.fitBounds(b)
                 }
               }
@@ -390,13 +397,13 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
                       new window.google.maps.LatLng(south, west),
                       new window.google.maps.LatLng(north, east),
                     )
-                    if (!userAdjustedViewRef.current) {
+                    if (!userAdjustedViewRef.current && !controlledViewport) {
                       mapInstanceRef.current.fitBounds(bounds)
                     }
                   } else if (Array.isArray(path) && path.length) {
                     const b = new window.google.maps.LatLngBounds()
                     path.forEach((p: any) => b.extend(p))
-                    if (!userAdjustedViewRef.current) {
+                    if (!userAdjustedViewRef.current && !controlledViewport) {
                       mapInstanceRef.current.fitBounds(b)
                     }
                   }
@@ -466,13 +473,7 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
       stopMarkersRef.current.push(marker)
     })
 
-    // Update stops polyline
-    if (stopPolylineRef.current) {
-      const path = sorted
-        .filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng))
-        .map((s) => new window.google.maps.LatLng(s.lat, s.lng))
-      stopPolylineRef.current.setPath(path)
-    }
+    // Polyline removed - stops show as individual markers only
 
     // Optionally fit bounds to include stops if no driver location
     if ((!driverLocation || !Number.isFinite(driverLocation.latitude) || !Number.isFinite(driverLocation.longitude)) && sorted.length) {
@@ -480,9 +481,21 @@ export function GoogleMap({ driverLocation, className, onLocationSelect, schoolL
       sorted.forEach((s) => {
         if (Number.isFinite(s.lat) && Number.isFinite(s.lng)) b.extend(new window.google.maps.LatLng(s.lat, s.lng))
       })
-      try { if (!userAdjustedViewRef.current) { mapInstanceRef.current.fitBounds(b) } } catch {}
+      try { if (!userAdjustedViewRef.current && !controlledViewport) { mapInstanceRef.current.fitBounds(b) } } catch {}
     }
-  }, [isLoaded, stops, currentStopIndex, driverLocation])
+  }, [isLoaded, stops, currentStopIndex, driverLocation, controlledViewport])
+
+  // Apply externally controlled viewport if provided (student mirroring driver)
+  useEffect(() => {
+    if (!isLoaded || !mapInstanceRef.current || !controlledViewport) return
+    const { center, zoom } = controlledViewport
+    if (Number.isFinite(center.lat) && Number.isFinite(center.lng)) {
+      mapInstanceRef.current.setCenter(center)
+    }
+    if (Number.isFinite(zoom)) {
+      mapInstanceRef.current.setZoom(zoom)
+    }
+  }, [isLoaded, controlledViewport])
 
   return (
     <div className={className}>

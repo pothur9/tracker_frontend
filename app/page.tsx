@@ -33,7 +33,7 @@ export default function HomePage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-sm sm:text-base md:text-lg max-w-2xl mx-auto">
-            Real-time school bus tracking for students and parents
+            Real-time  tracking for students and parents
           </p>
         </div>
       </header>
