@@ -179,9 +179,9 @@ export default function StudentDashboard() {
                       <Clock className="h-3 w-3" />
                       <p className="text-xs font-medium">ETA</p>
                     </div>
-                    <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {/* <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       {calculateETA()}
-                    </p>
+                    </p> */}
                   </div>
                 </div>
               </CardContent>
@@ -239,11 +239,11 @@ export default function StudentDashboard() {
               </div>
 
               {/* Last Update */}
-              {connectionStatus.lastUpdate && (
+              {/* {connectionStatus.lastUpdate && (
                 <p className="text-xs text-center text-muted-foreground mt-3">
                   Last updated {new Date(connectionStatus.lastUpdate).toLocaleTimeString()}
                 </p>
-              )}
+              )} */}
             </CardContent>
           </Card>
         </div>

@@ -14,7 +14,7 @@ export function Navbar({ showBackButton = false, backUrl = "/" }: NavbarProps) {
       {/* Trust Header */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 py-1.5 sm:py-1 text-center border-b border-primary/10">
         <p className="text-[10px] sm:text-xs text-muted-foreground font-medium tracking-wide px-2">
-          Managed by the Adaviswamy Trust
+          Managed by the Sri Adavi Thatha Seva Trust
         </p>
       </div>
       
