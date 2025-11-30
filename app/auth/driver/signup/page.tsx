@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowRight, Loader2, CheckCircle2, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { sendOTP } from "@/lib/auth"
+import { sendOTP, checkDriverExists } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
 import { validatePhoneNumber } from "@/lib/validation"
@@ -22,24 +22,38 @@ export default function DriverSignupPage() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
-  const [schools, setSchools] = useState<{ id: string; schoolName: string }[]>([])
+  const [allSchools, setAllSchools] = useState<{ id: string; schoolName: string; district: string }[]>([])
+  const [filteredSchools, setFilteredSchools] = useState<{ id: string; schoolName: string }[]>([])
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("")
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("")
+  const [districts, setDistricts] = useState<string[]>([])
   const [formData, setFormData] = useState({
     schoolName: "",
-    schoolCity: "",
     name: "",
     phone: "",
     busNumber: "",
   })
 
-  // Load list of schools for dropdown
+  // Load districts from JSON file
+  useEffect(() => {
+    fetch('/districts.json')
+      .then(res => res.json())
+      .then(data => {
+        // For Karnataka districts - you can change this to any state
+        const karnatakaDistricts = data['Karnataka'] || []
+        setDistricts(karnatakaDistricts)
+      })
+      .catch(e => console.error('Failed to load districts:', e))
+  }, [])
+
+  // Load all schools
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
         const data = await api("/api/school")
         if (!cancelled) {
-          setSchools(Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName })) : [])
+          setAllSchools(Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName, district: s.district })) : [])
         }
       } catch (e) {
         // ignore
@@ -50,17 +64,27 @@ export default function DriverSignupPage() {
     }
   }, [])
 
+  // Filter schools when district is selected
+  useEffect(() => {
+    if (selectedDistrict) {
+      const filtered = allSchools.filter(s => s.district === selectedDistrict)
+      setFilteredSchools(filtered)
+    } else {
+      setFilteredSchools([])
+    }
+  }, [selectedDistrict, allSchools])
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   const validateStep1 = () => {
-    if (!formData.schoolName.trim()) {
-      toast({ title: "Error", description: "Please select or enter your school", variant: "destructive" })
+    if (!selectedDistrict.trim()) {
+      toast({ title: "Error", description: "Please select a district", variant: "destructive" })
       return false
     }
-    if (!formData.schoolCity.trim()) {
-      toast({ title: "Error", description: "Please enter school city", variant: "destructive" })
+    if (!formData.schoolName.trim()) {
+      toast({ title: "Error", description: "Please select or enter your school", variant: "destructive" })
       return false
     }
     if (!formData.name.trim()) {
@@ -93,6 +117,23 @@ export default function DriverSignupPage() {
     setIsLoading(true)
 
     try {
+      // Check if driver already exists
+      const driverExists = await checkDriverExists(formData.phone)
+      
+      if (driverExists) {
+        toast({
+          title: "Account Already Exists",
+          description: "An account with this number already exists. Please login instead.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          router.push("/auth/driver/login")
+        }, 2000)
+        return
+      }
+
       // Send OTP using 2factor API
       const sessionId = await sendOTP(formData.phone)
       
@@ -181,15 +222,32 @@ export default function DriverSignupPage() {
               {/* Step 1: Basic Information */}
               {currentStep === 1 && (
                 <div className="space-y-4">
+                  {/* District Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="district">District</Label>
+                    <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select district" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {districts.map((district) => (
+                          <SelectItem key={district} value={district}>
+                            {district}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* School Name */}
                   <div className="space-y-2">
                     <Label htmlFor="schoolName">School</Label>
-                    {schools.length > 0 ? (
+                    {filteredSchools.length > 0 ? (
                       <Select
                         value={selectedSchoolId}
                         onValueChange={(value) => {
                           setSelectedSchoolId(value)
-                          const sel = schools.find((s) => s.id === value)
+                          const sel = filteredSchools.find((s: any) => s.id === value)
                           handleInputChange("schoolName", sel?.schoolName || "")
                         }}
                       >
@@ -197,14 +255,14 @@ export default function DriverSignupPage() {
                           <SelectValue placeholder="Select your school" />
                         </SelectTrigger>
                         <SelectContent>
-                          {schools.map((s) => (
+                          {filteredSchools.map((s: any) => (
                             <SelectItem key={s.id} value={s.id}>
                               {s.schoolName}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    ) : (
+                    ) : selectedDistrict ? (
                       <Input
                         id="schoolName"
                         placeholder="Enter school name"
@@ -215,19 +273,13 @@ export default function DriverSignupPage() {
                         }}
                         required
                       />
+                    ) : (
+                      <Input
+                        id="schoolName"
+                        placeholder="Select district first"
+                        disabled
+                      />
                     )}
-                  </div>
-
-                  {/* School City */}
-                  <div className="space-y-2">
-                    <Label htmlFor="schoolCity">School City</Label>
-                    <Input
-                      id="schoolCity"
-                      placeholder="Enter school city"
-                      value={formData.schoolCity}
-                      onChange={(e) => handleInputChange("schoolCity", e.target.value)}
-                      required
-                    />
                   </div>
 
                   {/* Driver Name */}

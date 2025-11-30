@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowRight, Loader2, CheckCircle2, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { sendOTP } from "@/lib/auth"
+import { sendOTP, checkUserExists } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
 import { validatePhoneNumber } from "@/lib/validation"
@@ -135,6 +135,23 @@ export default function StudentSignupPage() {
     setIsLoading(true)
 
     try {
+      // Check if user already exists
+      const userExists = await checkUserExists(formData.phone)
+      
+      if (userExists) {
+        toast({
+          title: "Account Already Exists",
+          description: "An account with this number already exists. Please login instead.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          router.push("/auth/student/login")
+        }, 2000)
+        return
+      }
+
       // Send OTP using 2factor API
       const sessionId = await sendOTP(formData.phone)
       

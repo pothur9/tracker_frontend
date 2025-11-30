@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { sendOTP } from "@/lib/auth"
+import { sendOTP, checkUserExists } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { validatePhoneNumber } from "@/lib/validation"
@@ -46,6 +46,23 @@ export default function StudentLoginPage() {
     setIsLoading(true)
 
     try {
+      // Check if user exists
+      const userExists = await checkUserExists(phone)
+      
+      if (!userExists) {
+        toast({
+          title: "Account Not Found",
+          description: "This number does not have an account. Please signup first.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        // Redirect to signup page after a short delay
+        setTimeout(() => {
+          router.push("/auth/student/signup")
+        }, 2000)
+        return
+      }
+
       // Send OTP
       const sessionId = await sendOTP(phone)
       

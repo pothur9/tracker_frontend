@@ -102,50 +102,68 @@ export default function VerifyOTPPage() {
         } 
         // Handle signup flow
         else if (signupData) {
-          // Get FCM token before creating the account so backend stores it
-          let fcmToken: string | null = null
           try {
-            fcmToken = await getFcmToken()
-          } catch {}
-          
-          // Create the user account with optional fcmToken
-          const newUser = await signUp({ ...signupData, fcmToken: fcmToken || undefined })
-          setUser(newUser)
-
-          // If student selected a school, map it to the account
-          if (signupData.type === "student" && signupData.schoolId) {
+            // Get FCM token before creating the account so backend stores it
+            let fcmToken: string | null = null
             try {
-              await api("/api/school/map/user", {
-                method: "POST",
-                body: { schoolId: signupData.schoolId },
+              fcmToken = await getFcmToken()
+            } catch {}
+            
+            // Create the user account with optional fcmToken
+            const newUser = await signUp({ ...signupData, fcmToken: fcmToken || undefined })
+            setUser(newUser)
+
+            // If student selected a school, map it to the account
+            if (signupData.type === "student" && signupData.schoolId) {
+              try {
+                await api("/api/school/map/user", {
+                  method: "POST",
+                  body: { schoolId: signupData.schoolId },
+                })
+              } catch (e) {
+                // Non-blocking: mapping failure shouldn't prevent account creation
+                console.warn("School mapping failed:", e)
+              }
+            }
+            // If driver selected a school, map it to the account
+            if (signupData.type === "driver" && signupData.schoolId) {
+              try {
+                await api("/api/school/map/driver", {
+                  method: "POST",
+                  body: { schoolId: signupData.schoolId },
+                })
+              } catch (e) {
+                console.warn("Driver school mapping failed:", e)
+              }
+            }
+
+            toast({
+              title: "Account Created!",
+              description: `Your ${signupData.type} account has been successfully created.`,
+            })
+
+            // Clear signup data
+            sessionStorage.removeItem("signupData")
+
+            // Redirect based on user type
+            router.push(signupData.type === "student" ? "/dashboard/student" : "/dashboard/driver")
+          } catch (signupError: any) {
+            // Check if error is due to existing account
+            const errorMessage = signupError?.message || signupError?.error || String(signupError)
+            if (errorMessage.toLowerCase().includes("already exists")) {
+              toast({
+                title: "Account Already Exists",
+                description: `An account with this number already exists. Please login instead.`,
+                variant: "destructive",
               })
-            } catch (e) {
-              // Non-blocking: mapping failure shouldn't prevent account creation
-              console.warn("School mapping failed:", e)
+              // Redirect to login page after a short delay
+              setTimeout(() => {
+                router.push(signupData.type === "student" ? "/auth/student/login" : "/auth/driver/login")
+              }, 2000)
+            } else {
+              throw signupError // Re-throw if it's a different error
             }
           }
-          // If driver selected a school, map it to the account
-          if (signupData.type === "driver" && signupData.schoolId) {
-            try {
-              await api("/api/school/map/driver", {
-                method: "POST",
-                body: { schoolId: signupData.schoolId },
-              })
-            } catch (e) {
-              console.warn("Driver school mapping failed:", e)
-            }
-          }
-
-          toast({
-            title: "Account Created!",
-            description: `Your ${signupData.type} account has been successfully created.`,
-          })
-
-          // Clear signup data
-          sessionStorage.removeItem("signupData")
-
-          // Redirect based on user type
-          router.push(signupData.type === "student" ? "/dashboard/student" : "/dashboard/driver")
         }
       } else {
         toast({

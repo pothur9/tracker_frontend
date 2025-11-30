@@ -131,3 +131,24 @@ export const sendOTP = async (phone: string): Promise<string | null> => {
     return null
   }
 }
+
+export const checkUserExists = async (phone: string): Promise<boolean> => {
+  try {
+    const resp = await api(`/api/auth/user/check/${phone}`)
+    return resp.exists === true
+  } catch (error) {
+    console.error("Error checking user existence:", error)
+    return false
+  }
+}
+
+export const checkDriverExists = async (phone: string): Promise<boolean> => {
+  try {
+    const resp = await api(`/api/auth/driver/check/${phone}`)
+    return resp.exists === true
+  } catch (error) {
+    console.error("Error checking driver existence:", error)
+    return false
+  }
+}
+
