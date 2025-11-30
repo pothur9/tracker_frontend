@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.tracker.app",
+            "sha256_cert_fingerprints": [
+                "24:16:D5:2C:BF:90:A6:B1:49:B5:BA:B7:59:48:65:56:22:D4:7F:C7:50:F4:B8:4C:C2:52:64:67:F8:54:4B:0A"
+            ]
+        }
+    }
+]
