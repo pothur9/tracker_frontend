@@ -23,7 +23,6 @@ export default function DriverSignupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [allSchools, setAllSchools] = useState<{ id: string; schoolName: string; district: string }[]>([])
-  const [filteredSchools, setFilteredSchools] = useState<{ id: string; schoolName: string }[]>([])
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("")
   const [selectedDistrict, setSelectedDistrict] = useState<string>("")
   const [districts, setDistricts] = useState<string[]>([])
@@ -64,16 +63,6 @@ export default function DriverSignupPage() {
     }
   }, [])
 
-  // Filter schools when district is selected
-  useEffect(() => {
-    if (selectedDistrict) {
-      const filtered = allSchools.filter(s => s.district === selectedDistrict)
-      setFilteredSchools(filtered)
-    } else {
-      setFilteredSchools([])
-    }
-  }, [selectedDistrict, allSchools])
-
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
@@ -84,7 +73,7 @@ export default function DriverSignupPage() {
       return false
     }
     if (!formData.schoolName.trim()) {
-      toast({ title: "Error", description: "Please select or enter your school", variant: "destructive" })
+      toast({ title: "Error", description: "Please select your school", variant: "destructive" })
       return false
     }
     if (!formData.name.trim()) {
@@ -151,6 +140,7 @@ export default function DriverSignupPage() {
         "signupData",
         JSON.stringify({
           ...formData,
+          schoolCity: selectedDistrict, // Add schoolCity from selected district
           schoolId: selectedSchoolId || undefined,
           type: "driver",
           sessionId,
@@ -242,44 +232,27 @@ export default function DriverSignupPage() {
                   {/* School Name */}
                   <div className="space-y-2">
                     <Label htmlFor="schoolName">School</Label>
-                    {filteredSchools.length > 0 ? (
-                      <Select
-                        value={selectedSchoolId}
-                        onValueChange={(value) => {
-                          setSelectedSchoolId(value)
-                          const sel = filteredSchools.find((s: any) => s.id === value)
-                          handleInputChange("schoolName", sel?.schoolName || "")
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your school" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {filteredSchools.map((s: any) => (
-                            <SelectItem key={s.id} value={s.id}>
-                              {s.schoolName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : selectedDistrict ? (
-                      <Input
-                        id="schoolName"
-                        placeholder="Enter school name"
-                        value={formData.schoolName}
-                        onChange={(e) => {
-                          setSelectedSchoolId("")
-                          handleInputChange("schoolName", e.target.value)
-                        }}
-                        required
-                      />
-                    ) : (
-                      <Input
-                        id="schoolName"
-                        placeholder="Select district first"
-                        disabled
-                      />
-                    )}
+                    <Select
+                      value={selectedSchoolId}
+                      onValueChange={(value) => {
+                        setSelectedSchoolId(value)
+                        const sel = allSchools.find((s: any) => s.id === value)
+                        if (sel) {
+                          handleInputChange("schoolName", sel.schoolName)
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your school" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allSchools.map((s: any) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.schoolName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Driver Name */}

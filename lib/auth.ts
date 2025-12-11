@@ -76,6 +76,7 @@ export const signUp = async (userData: Partial<User>): Promise<User> => {
         name: userData.name,
         phone: userData.phone,
         busNumber: userData.busNumber,
+        schoolId: userData.schoolId, // Include schoolId for linking to school
       },
     })
     return persistAuth(resp.token, resp.driver, "driver")
