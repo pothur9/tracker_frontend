@@ -32,9 +32,35 @@ const messaging = firebase.messaging();
 try {
   messaging.onBackgroundMessage(function(payload) {
     const n = payload && payload.notification ? payload.notification : {}
-    const title = n.title || (payload.data && payload.data.title) || 'Notification'
+    const title = n.title || (payload.data && payload.data.title) || 'Ambari'
     const body = n.body || (payload.data && payload.data.body) || ''
-    self.registration.showNotification(title, { body })
+    
+    const notificationOptions = {
+      body: body,
+      icon: '/logo.jpg',
+      badge: '/logo.jpg',
+      tag: 'ambari-notification',
+      requireInteraction: false,
+      vibrate: [200, 100, 200],
+      data: payload.data || {}
+    }
+    
+    // Save notification to localStorage via client message
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'SAVE_NOTIFICATION',
+          notification: {
+            title: title,
+            body: body,
+            type: 'info',
+            data: payload.data || {}
+          }
+        })
+      })
+    })
+    
+    self.registration.showNotification(title, notificationOptions)
   })
 } catch (e) {
   // ignore

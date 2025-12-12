@@ -16,13 +16,18 @@ import { useToast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
 import { validatePhoneNumber } from "@/lib/validation"
 import { Navbar } from "@/components/navbar"
+import { useLanguage } from "@/hooks/useLanguage"
+import { getTranslation } from "@/lib/translations"
+import { LanguageSelector } from "@/components/language-selector"
 
 export default function DriverSignupPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { language, setLanguage } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [allSchools, setAllSchools] = useState<{ id: string; schoolName: string; district: string }[]>([])
+  const [filteredSchools, setFilteredSchools] = useState<{ id: string; schoolName: string }[]>([])
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("")
   const [selectedDistrict, setSelectedDistrict] = useState<string>("")
   const [districts, setDistricts] = useState<string[]>([])
@@ -62,6 +67,16 @@ export default function DriverSignupPage() {
       cancelled = true
     }
   }, [])
+
+  // Filter schools when district changes
+  useEffect(() => {
+    if (selectedDistrict) {
+      const filtered = allSchools.filter(s => s.district === selectedDistrict)
+      setFilteredSchools(filtered)
+    } else {
+      setFilteredSchools(allSchools)
+    }
+  }, [selectedDistrict, allSchools])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -171,8 +186,11 @@ export default function DriverSignupPage() {
       <div className="max-w-md mx-auto w-full p-4 sm:p-6 pt-8">
         <Card className="w-full">
           <CardHeader className="text-center pb-4 px-4 sm:px-6">
-            <CardTitle className="text-2xl font-serif">Driver Registration</CardTitle>
-            <CardDescription>Create your driver account to start sharing location</CardDescription>
+            <div className="flex justify-end mb-2">
+              <LanguageSelector language={language} onLanguageChange={setLanguage} />
+            </div>
+            <CardTitle className="text-2xl font-serif">{getTranslation('driverSignup.title', language)}</CardTitle>
+            <CardDescription>{getTranslation('driverSignup.description', language)}</CardDescription>
             
             {/* Progress Indicator */}
             <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-6 px-2">
@@ -214,7 +232,7 @@ export default function DriverSignupPage() {
                 <div className="space-y-4">
                   {/* District Selection */}
                   <div className="space-y-2">
-                    <Label htmlFor="district">District</Label>
+                    <Label htmlFor="district">{getTranslation('driverSignup.district', language)}</Label>
                     <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select district" />
@@ -231,12 +249,12 @@ export default function DriverSignupPage() {
 
                   {/* School Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="schoolName">School</Label>
+                    <Label htmlFor="schoolName">{getTranslation('studentSignup.schoolName', language)}</Label>
                     <Select
                       value={selectedSchoolId}
                       onValueChange={(value) => {
                         setSelectedSchoolId(value)
-                        const sel = allSchools.find((s: any) => s.id === value)
+                        const sel = filteredSchools.find((s: any) => s.id === value)
                         if (sel) {
                           handleInputChange("schoolName", sel.schoolName)
                         }
@@ -246,7 +264,7 @@ export default function DriverSignupPage() {
                         <SelectValue placeholder="Select your school" />
                       </SelectTrigger>
                       <SelectContent>
-                        {allSchools.map((s: any) => (
+                        {filteredSchools.map((s: any) => (
                           <SelectItem key={s.id} value={s.id}>
                             {s.schoolName}
                           </SelectItem>
@@ -257,10 +275,10 @@ export default function DriverSignupPage() {
 
                   {/* Driver Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="name">{getTranslation('driverSignup.driverName', language)}</Label>
                     <Input
                       id="name"
-                      placeholder="Enter your full name"
+                      placeholder={getTranslation('driverSignup.driverName', language)}
                       value={formData.name}
                       onChange={(e) => handleInputChange("name", e.target.value)}
                       required
@@ -279,22 +297,22 @@ export default function DriverSignupPage() {
                 <div className="space-y-4">
                   {/* Phone Number */}
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone">{getTranslation('studentLogin.phoneLabel', language)}</Label>
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="Enter phone number"
+                      placeholder={getTranslation('studentLogin.phonePlaceholder', language)}
                       value={formData.phone}
                       onChange={(e) => handleInputChange("phone", e.target.value)}
                       maxLength={10}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Must be 10 digits starting with 6, 7, 8, or 9</p>
+                    <p className="text-xs text-muted-foreground">{getTranslation('studentLogin.phoneHelper', language)}</p>
                   </div>
 
                   {/* Bus Number */}
                   <div className="space-y-2">
-                    <Label htmlFor="busNumber">Bus Number</Label>
+                    <Label htmlFor="busNumber">{getTranslation('studentSignup.busNumber', language)}</Label>
                     <Input
                       id="busNumber"
                       placeholder="Enter bus number (e.g., BUS001)"
@@ -316,10 +334,10 @@ export default function DriverSignupPage() {
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sending OTP...
+                          {getTranslation('studentSignup.creating', language)}
                         </>
                       ) : (
-                        "Create Account"
+                        getTranslation('studentSignup.createAccount', language)
                       )}
                     </Button>
                     <Button type="button" onClick={() => setCurrentStep(1)} variant="outline" className="w-full mt-4" size="lg">
@@ -340,9 +358,9 @@ export default function DriverSignupPage() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
+                {getTranslation('studentSignup.haveAccount', language)}{" "}
                 <Link href="/auth/driver/login" className="text-primary hover:underline">
-                  Sign in
+                  {getTranslation('studentSignup.login', language)}
                 </Link>
               </p>
             </div>

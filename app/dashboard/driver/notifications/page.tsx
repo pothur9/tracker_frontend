@@ -4,57 +4,47 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Bell, Clock, AlertTriangle, CheckCircle, X } from "lucide-react"
-import { BottomNavigation } from "@/components/bottom-navigation"
+import { TopNavigation } from "@/components/top-navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
+import { getNotifications, markAsRead as markNotificationAsRead, deleteNotification as removeNotification, type StoredNotification } from "@/lib/notifications"
 
-interface Notification {
-  id: string
-  type: "info" | "warning" | "success" | "error"
-  title: string
+interface Notification extends StoredNotification {
   message: string
-  timestamp: Date
-  isRead: boolean
 }
 
 export default function DriverNotificationsPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      type: "info",
-      title: "New Student Added",
-      message: "Alice Johnson has been assigned to your bus route",
-      timestamp: new Date(Date.now() - 10 * 60 * 1000),
-      isRead: false,
-    },
-    {
-      id: "2",
-      type: "warning",
-      title: "Route Update Required",
-      message: "Please update your route information for tomorrow",
-      timestamp: new Date(Date.now() - 30 * 60 * 1000),
-      isRead: false,
-    },
-    {
-      id: "3",
-      type: "success",
-      title: "Route Completed",
-      message: "Morning route completed successfully. 12 students transported.",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      isRead: true,
-    },
-    {
-      id: "4",
-      type: "info",
-      title: "Parent Contact",
-      message: "Parent of John Doe requested to speak with you",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-      isRead: true,
-    },
-  ])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+
+  // Load notifications from localStorage
+  const loadNotifications = () => {
+    const stored = getNotifications()
+    const formatted: Notification[] = stored.map(n => ({
+      ...n,
+      message: n.body,
+      timestamp: n.timestamp,
+    }))
+    setNotifications(formatted)
+  }
+
+  // Initial load
+  useEffect(() => {
+    loadNotifications()
+  }, [])
+
+  // Listen for notification updates
+  useEffect(() => {
+    const handleUpdate = () => {
+      loadNotifications()
+    }
+    window.addEventListener('notificationsUpdated', handleUpdate)
+    return () => {
+      window.removeEventListener('notificationsUpdated', handleUpdate)
+    }
+  }, [])
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -69,15 +59,19 @@ export default function DriverNotificationsPage() {
   }, [user, router])
 
   const markAsRead = (id: string) => {
-    setNotifications((prev) => prev.map((notif) => (notif.id === id ? { ...notif, isRead: true } : notif)))
+    markNotificationAsRead(id)
+    loadNotifications()
   }
 
   const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })))
+    // Mark all as read in localStorage
+    notifications.forEach(n => markNotificationAsRead(n.id))
+    loadNotifications()
   }
 
   const deleteNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id))
+    removeNotification(id)
+    loadNotifications()
   }
 
   const getIcon = (type: string) => {
@@ -93,7 +87,8 @@ export default function DriverNotificationsPage() {
     }
   }
 
-  const formatTime = (date: Date) => {
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const minutes = Math.floor(diff / (1000 * 60))
@@ -115,9 +110,10 @@ export default function DriverNotificationsPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar */}
       <Navbar showBackButton backUrl="/dashboard/driver" />
+      <TopNavigation activeTab="notifications" userType="driver" />
 
       {/* Content */}
-      <div className="flex-1 p-4">
+      <div className="flex-1 overflow-auto p-4">
         {notifications.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
@@ -173,8 +169,6 @@ export default function DriverNotificationsPage() {
         )}
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="notifications" userType="driver" />
     </div>
   )
 }

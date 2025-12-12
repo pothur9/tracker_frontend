@@ -16,14 +16,21 @@ import { useToast } from "@/hooks/use-toast"
 import { api } from "@/lib/api"
 import { validatePhoneNumber } from "@/lib/validation"
 import { Navbar } from "@/components/navbar"
+import { useLanguage } from "@/hooks/useLanguage"
+import { getTranslation } from "@/lib/translations"
+import { LanguageSelector } from "@/components/language-selector"
 
 export default function StudentSignupPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { language, setLanguage } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
-  const [schools, setSchools] = useState<Array<{ id: string; schoolName: string }>>([])
+  const [schools, setSchools] = useState<Array<{ id: string; schoolName: string; district: string }>>([])
+  const [filteredSchools, setFilteredSchools] = useState<Array<{ id: string; schoolName: string }>>([])
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("")
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("")
+  const [districts, setDistricts] = useState<string[]>([])
   const [formData, setFormData] = useState({
     city: "",
     schoolName: "",
@@ -66,14 +73,25 @@ export default function StudentSignupPage() {
     }
   }, [selectedSchoolId])
 
-  // Load list of schools for dropdown
+  // Load districts from JSON file
+  useEffect(() => {
+    fetch('/districts.json')
+      .then(res => res.json())
+      .then(data => {
+        const karnatakaDistricts = data['Karnataka'] || []
+        setDistricts(karnatakaDistricts)
+      })
+      .catch(e => console.error('Failed to load districts:', e))
+  }, [])
+
+  // Load list of all schools for dropdown
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
         const data = await api("/api/school")
         if (!cancelled) {
-          setSchools(Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName })) : [])
+          setSchools(Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName, district: s.district })) : [])
         }
       } catch (e) {
         // ignore fetch errors for now; user can still type manually if needed
@@ -83,6 +101,16 @@ export default function StudentSignupPage() {
       cancelled = true
     }
   }, [])
+
+  // Filter schools when district changes
+  useEffect(() => {
+    if (selectedDistrict) {
+      const filtered = schools.filter(s => s.district === selectedDistrict)
+      setFilteredSchools(filtered)
+    } else {
+      setFilteredSchools(schools)
+    }
+  }, [selectedDistrict, schools])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -199,8 +227,11 @@ export default function StudentSignupPage() {
       <div className="max-w-md mx-auto w-full p-4 sm:p-6 pt-8">
         <Card className="w-full">
           <CardHeader className="text-center pb-4 px-4 sm:px-6">
-            <CardTitle className="text-2xl font-serif">Student Registration</CardTitle>
-            <CardDescription>Create your account to start tracking your school bus</CardDescription>
+            <div className="flex justify-end mb-2">
+              <LanguageSelector language={language} onLanguageChange={setLanguage} />
+            </div>
+            <CardTitle className="text-2xl font-serif">{getTranslation('studentSignup.title', language)}</CardTitle>
+            <CardDescription>{getTranslation('studentSignup.description', language)}</CardDescription>
             
             {/* Progress Indicator */}
             <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-6 px-2">
@@ -240,12 +271,29 @@ export default function StudentSignupPage() {
               {/* Step 1: Personal Information */}
               {currentStep === 1 && (
                 <div className="space-y-4">
+                  {/* District Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="district">District</Label>
+                    <Select value={selectedDistrict} onValueChange={setSelectedDistrict}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select district" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {districts.map((district) => (
+                          <SelectItem key={district} value={district}>
+                            {district}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* City */}
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city">{getTranslation('studentSignup.city', language)}</Label>
                     <Input
                       id="city"
-                      placeholder="Enter your city"
+                      placeholder={getTranslation('studentSignup.city', language)}
                       value={formData.city}
                       onChange={(e) => handleInputChange("city", e.target.value)}
                       required
@@ -254,13 +302,13 @@ export default function StudentSignupPage() {
 
                   {/* School Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="schoolName">School</Label>
-                    {schools.length > 0 ? (
+                    <Label htmlFor="schoolName">{getTranslation('studentSignup.schoolName', language)}</Label>
+                    {filteredSchools.length > 0 ? (
                       <Select
                         value={selectedSchoolId}
                         onValueChange={(value) => {
                           setSelectedSchoolId(value)
-                          const sel = schools.find((s) => s.id === value)
+                          const sel = filteredSchools.find((s) => s.id === value)
                           handleInputChange("schoolName", sel?.schoolName || "")
                         }}
                       >
@@ -268,7 +316,7 @@ export default function StudentSignupPage() {
                           <SelectValue placeholder="Select your school" />
                         </SelectTrigger>
                         <SelectContent>
-                          {schools.map((s) => (
+                          {filteredSchools.map((s) => (
                             <SelectItem key={s.id} value={s.id}>
                               {s.schoolName}
                             </SelectItem>
@@ -291,10 +339,10 @@ export default function StudentSignupPage() {
 
                   {/* Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="name">{getTranslation('studentSignup.studentName', language)}</Label>
                     <Input
                       id="name"
-                      placeholder="Enter your full name"
+                      placeholder={getTranslation('studentSignup.studentName', language)}
                       value={formData.name}
                       onChange={(e) => handleInputChange("name", e.target.value)}
                       required
@@ -303,10 +351,10 @@ export default function StudentSignupPage() {
 
                   {/* Father Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="fatherName">Father's Name</Label>
+                    <Label htmlFor="fatherName">{getTranslation('studentSignup.fatherName', language)}</Label>
                     <Input
                       id="fatherName"
-                      placeholder="Enter father's name"
+                      placeholder={getTranslation('studentSignup.fatherName', language)}
                       value={formData.fatherName}
                       onChange={(e) => handleInputChange("fatherName", e.target.value)}
                       required
@@ -340,22 +388,22 @@ export default function StudentSignupPage() {
                 <div className="space-y-4">
                   {/* Phone Number */}
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone">{getTranslation('studentLogin.phoneLabel', language)}</Label>
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="Enter phone number"
+                      placeholder={getTranslation('studentLogin.phonePlaceholder', language)}
                       value={formData.phone}
                       onChange={(e) => handleInputChange("phone", e.target.value)}
                       maxLength={10}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Must be 10 digits starting with 6, 7, 8, or 9</p>
+                    <p className="text-xs text-muted-foreground">{getTranslation('studentLogin.phoneHelper', language)}</p>
                   </div>
 
                   {/* Bus Number */}
                   <div className="space-y-2">
-                    <Label htmlFor="busNumber">Bus Number</Label>
+                    <Label htmlFor="busNumber">{getTranslation('studentSignup.busNumber', language)}</Label>
                     {busOptions.length > 0 ? (
                       <Select
                         value={formData.busNumber}
@@ -386,7 +434,7 @@ export default function StudentSignupPage() {
                   {/* Class and Section */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="class">Class</Label>
+                      <Label htmlFor="class">{getTranslation('studentSignup.class', language)}</Label>
                       <Select value={formData.class} onValueChange={(value) => handleInputChange("class", value)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Class" />
@@ -401,7 +449,7 @@ export default function StudentSignupPage() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="section">Section</Label>
+                      <Label htmlFor="section">{getTranslation('studentSignup.section', language)}</Label>
                       <Select value={formData.section} onValueChange={(value) => handleInputChange("section", value)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Section" />
@@ -429,10 +477,10 @@ export default function StudentSignupPage() {
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sending OTP...
+                          {getTranslation('studentSignup.creating', language)}
                         </>
                       ) : (
-                        "Create Account"
+                        getTranslation('studentSignup.createAccount', language)
                       )}
                     </Button>
                     <Button type="button" onClick={() => setCurrentStep(1)} variant="outline" className="w-full mt-2" size="lg">
@@ -446,9 +494,9 @@ export default function StudentSignupPage() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
+                {getTranslation('studentSignup.haveAccount', language)}{" "}
                 <Link href="/auth/student/login" className="text-primary hover:underline">
-                  Sign in
+                  {getTranslation('studentSignup.login', language)}
                 </Link>
               </p>
             </div>

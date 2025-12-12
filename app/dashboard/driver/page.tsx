@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Users, Navigation, Phone, Bell, Power, Clock, Wifi } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
-import { BottomNavigation } from "@/components/bottom-navigation"
+import { TopNavigation } from "@/components/top-navigation"
 import { ConnectionStatus } from "@/components/connection-status"
 import { useAuth } from "@/hooks/use-auth"
 import { Navbar } from "@/components/navbar"
@@ -340,6 +340,7 @@ export default function DriverDashboard() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar */}
       <Navbar />
+      <TopNavigation activeTab="home" userType="driver" />
 
       {/* Main Content */}
       <div className="flex-1 p-4 space-y-4">
@@ -531,8 +532,6 @@ export default function DriverDashboard() {
         </Card> */}
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="home" userType="driver" />
     </div>
   )
 }

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Separator } from "@/components/ui/separator"
 import { User, Edit3, Save, X, LogOut, Settings, Moon, Sun, Phone, MapPin, School } from "lucide-react"
-import { BottomNavigation } from "@/components/bottom-navigation"
+import { TopNavigation } from "@/components/top-navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
@@ -112,6 +112,7 @@ export default function StudentProfilePage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar */}
       <Navbar showBackButton backUrl="/dashboard/student" />
+      <TopNavigation activeTab="profile" userType="student" />
 
       {/* Content */}
       <div className="flex-1 p-4 space-y-6">
@@ -322,9 +323,6 @@ export default function StudentProfilePage() {
           </div>
         )}
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="profile" userType="student" />
     </div>
   )
 }

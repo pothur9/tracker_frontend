@@ -4,57 +4,47 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Bell, Clock, AlertTriangle, CheckCircle, X } from "lucide-react"
-import { BottomNavigation } from "@/components/bottom-navigation"
+import { TopNavigation } from "@/components/top-navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
+import { getNotifications, markAsRead as markNotificationAsRead, deleteNotification as removeNotification, type StoredNotification } from "@/lib/notifications"
 
-interface Notification {
-  id: string
-  type: "info" | "warning" | "success" | "error"
-  title: string
+interface Notification extends StoredNotification {
   message: string
-  timestamp: Date
-  isRead: boolean
 }
 
 export default function StudentNotificationsPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: "1",
-      type: "info",
-      title: "Bus Approaching",
-      message: "Your bus is 5 minutes away from your stop",
-      timestamp: new Date(Date.now() - 5 * 60 * 1000),
-      isRead: false,
-    },
-    {
-      id: "2",
-      type: "warning",
-      title: "Route Delay",
-      message: "Bus is running 10 minutes late due to traffic",
-      timestamp: new Date(Date.now() - 15 * 60 * 1000),
-      isRead: false,
-    },
-    {
-      id: "3",
-      type: "success",
-      title: "Trip Completed",
-      message: "You have safely reached your destination",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      isRead: true,
-    },
-    {
-      id: "4",
-      type: "info",
-      title: "Driver Update",
-      message: "John Driver has started the morning route",
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-      isRead: true,
-    },
-  ])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+
+  // Load notifications from localStorage
+  const loadNotifications = () => {
+    const stored = getNotifications()
+    const formatted: Notification[] = stored.map(n => ({
+      ...n,
+      message: n.body,
+      timestamp: n.timestamp,
+    }))
+    setNotifications(formatted)
+  }
+
+  // Initial load
+  useEffect(() => {
+    loadNotifications()
+  }, [])
+
+  // Listen for notification updates
+  useEffect(() => {
+    const handleUpdate = () => {
+      loadNotifications()
+    }
+    window.addEventListener('notificationsUpdated', handleUpdate)
+    return () => {
+      window.removeEventListener('notificationsUpdated', handleUpdate)
+    }
+  }, [])
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -69,15 +59,19 @@ export default function StudentNotificationsPage() {
   }, [user, router])
 
   const markAsRead = (id: string) => {
-    setNotifications((prev) => prev.map((notif) => (notif.id === id ? { ...notif, isRead: true } : notif)))
+    markNotificationAsRead(id)
+    loadNotifications()
   }
 
   const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })))
+    // Mark all as read in localStorage
+    notifications.forEach(n => markNotificationAsRead(n.id))
+    loadNotifications()
   }
 
   const deleteNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id))
+    removeNotification(id)
+    loadNotifications()
   }
 
   const getIcon = (type: string) => {
@@ -93,7 +87,8 @@ export default function StudentNotificationsPage() {
     }
   }
 
-  const formatTime = (date: Date) => {
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const minutes = Math.floor(diff / (1000 * 60))
@@ -115,9 +110,10 @@ export default function StudentNotificationsPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar */}
       <Navbar showBackButton backUrl="/dashboard/student" />
+      <TopNavigation activeTab="notifications" userType="student" />
 
       {/* Content */}
-      <div className="flex-1 p-4">
+      <div className="flex-1 overflow-auto p-4">
         {notifications.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
@@ -172,9 +168,6 @@ export default function StudentNotificationsPage() {
           </div>
         )}
       </div>
-
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="notifications" userType="student" />
     </div>
   )
 }

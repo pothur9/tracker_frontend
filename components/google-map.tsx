@@ -254,8 +254,23 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
       const lat = start.lat + (end.lat - start.lat) * t
       const lng = start.lng + (end.lng - start.lng) * t
       markerRef.current.setPosition({ lat, lng })
-      const icon = { ...markerRef.current.getIcon(), rotation: bearing }
-      markerRef.current.setIcon(icon)
+      
+      // Get the current icon and create a new one with updated rotation
+      const currentIcon = markerRef.current.getIcon()
+      if (currentIcon && typeof currentIcon === 'object') {
+        const newIcon = {
+          path: currentIcon.path,
+          fillColor: currentIcon.fillColor,
+          fillOpacity: currentIcon.fillOpacity,
+          strokeColor: currentIcon.strokeColor,
+          strokeWeight: currentIcon.strokeWeight,
+          scale: currentIcon.scale,
+          anchor: currentIcon.anchor,
+          rotation: bearing,
+        }
+        markerRef.current.setIcon(newIcon)
+      }
+      
       if (t < 1) {
         requestAnimationFrame(animate)
       } else {
@@ -430,7 +445,7 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
           tryClient()
         }
       })()
-    } else if (routeLineRef.current) {
+    } else if (routeLineRef.current && routeLineRef.current.setPath) {
       routeLineRef.current.setPath([])
     }
   }, [isLoaded, schoolLocation, showRoute, driverLocation])

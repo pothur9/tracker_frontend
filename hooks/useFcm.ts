@@ -41,24 +41,44 @@ export function useFcm(jwt?: string) {
             const title = payload.notification?.title || (payload.data as any)?.title || 'Notification'
             const body = payload.notification?.body || (payload.data as any)?.body || ''
 
+            console.log('[FCM Foreground] Notification received:', { title, body })
+
+            // Save notification to localStorage
+            const { saveNotification } = await import('@/lib/notifications')
+            saveNotification({
+              title,
+              body,
+              type: 'info',
+              data: payload.data as Record<string, any>,
+            })
+            console.log('[FCM Foreground] Notification saved to localStorage')
+
             // Try showing a browser notification via SW if permission is granted
             const canNotify = typeof window !== 'undefined' && 'Notification' in window
             if (canNotify) {
               let permission = Notification.permission
               if (permission === 'default') {
-                try { permission = await Notification.requestPermission() } catch {}
+                try { permission = await Notification.requestPermission() } catch { }
               }
               if (permission === 'granted') {
                 try {
+                  const notificationOptions = {
+                    body,
+                    icon: '/logo.jpg',
+                    badge: '/logo.jpg',
+                    tag: 'ambari-notification',
+                    requireInteraction: false,
+                    vibrate: [200, 100, 200],
+                  }
+
                   const reg = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
                   if (reg) {
-                    await reg.showNotification(title, { body })
+                    await reg.showNotification(title, notificationOptions)
                   } else if (navigator.serviceWorker.ready) {
                     const ready = await navigator.serviceWorker.ready
-                    await ready.showNotification(title, { body })
+                    await ready.showNotification(title, notificationOptions)
                   } else {
-                   
-                    new Notification(title, { body })
+                    new Notification(title, notificationOptions)
                   }
                 } catch {
                   // Ignore and fall back to toast
@@ -78,8 +98,28 @@ export function useFcm(jwt?: string) {
       }
     }
     init()
+
+    // Listen for messages from service worker
+    const handleServiceWorkerMessage = async (event: MessageEvent) => {
+      console.log('[FCM] Service worker message received:', event.data)
+      if (event.data && event.data.type === 'SAVE_NOTIFICATION') {
+        console.log('[FCM] Saving notification from service worker:', event.data.notification)
+        const { saveNotification } = await import('@/lib/notifications')
+        saveNotification({
+          title: event.data.notification.title,
+          body: event.data.notification.body,
+          type: event.data.notification.type || 'info',
+          data: event.data.notification.data,
+        })
+        console.log('[FCM] Notification saved from service worker')
+      }
+    }
+
+    navigator.serviceWorker?.addEventListener('message', handleServiceWorkerMessage)
+
     return () => {
       mounted = false
+      navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage)
     }
   }, [jwt])
 

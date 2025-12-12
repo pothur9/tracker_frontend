@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Navigation, Users, MapPin, Power, Plus, Locate } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
-import { BottomNavigation } from "@/components/bottom-navigation"
+import { TopNavigation } from "@/components/top-navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { getCurrentLocation, type Location, type DriverLocation, watchLocation, stopWatchingLocation, updateDriverLocation, updateDriverViewport } from "@/lib/location"
 import { useRouter } from "next/navigation"
@@ -224,6 +224,7 @@ export default function DriverMapPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar */}
       <Navbar showBackButton backUrl="/dashboard/driver" />
+      <TopNavigation activeTab="map" userType="driver" />
 
       {/* Full Screen Map */}
       <div className="flex-1 relative">
@@ -324,8 +325,6 @@ export default function DriverMapPage() {
         )}
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="map" userType="driver" />
     </div>
   )
 }

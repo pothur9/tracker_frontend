@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Navigation, RefreshCw, Bus, Locate } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
-import { BottomNavigation } from "@/components/bottom-navigation"
+import { TopNavigation } from "@/components/top-navigation"
 import { ConnectionStatus } from "@/components/connection-status"
 import { useAuth } from "@/hooks/use-auth"
 import { useRealTimeLocation } from "@/hooks/use-real-time-location"
@@ -117,6 +117,7 @@ export default function StudentMapPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Navbar */}
       <Navbar showBackButton backUrl="/dashboard/student" />
+      <TopNavigation activeTab="map" userType="student" />
 
       {/* Full Screen Map */}
       <div className="flex-1 relative">
@@ -149,24 +150,24 @@ export default function StudentMapPage() {
           )}
         </div>
 
-        {/* Floating Status Card */}
-        {driverLocation && connectionStatus.isConnected && (
-          <div className="absolute top-4 left-4 right-4 z-10">
-            <Card className="shadow-lg">
-              <CardContent className="p-4">
+        {/* Compact Floating Status Card */}
+        {/* {driverLocation && connectionStatus.isConnected && (
+          <div className="absolute top-3 left-3 right-3 z-10">
+            <Card className="shadow-md bg-white/95 backdrop-blur-sm">
+              <CardContent className="p-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Bus className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <Bus className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">Bus {user.busNumber}</h3>
-                        <Badge variant={getStatusColor() as any}>
+                        <h3 className="font-semibold text-sm">Bus {user.busNumber}</h3>
+                        <Badge variant={getStatusColor() as any} className="text-xs py-0">
                           {getStatusText()}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
                         <Navigation className="h-3 w-3" />
                         {driverLocation?.speed ? `${Math.round(driverLocation.speed)} km/h` : "Stationary"}
                       </p>
@@ -176,13 +177,13 @@ export default function StudentMapPage() {
               </CardContent>
             </Card>
           </div>
-        )}
+        )} */}
 
         {/* Connection Error */}
         {(connectionStatus.error || !connectionStatus.isConnected) && (
-          <div className="absolute top-4 left-4 right-4 z-20">
-            <Card className="shadow-lg border-red-200 bg-red-50">
-              <CardContent className="p-3">
+          <div className="absolute top-3 left-3 right-3 z-20">
+            <Card className="shadow-md border-red-200 bg-red-50/95 backdrop-blur-sm">
+              <CardContent className="p-2.5">
                 <ConnectionStatus status={connectionStatus} onReconnect={forceReconnect} />
               </CardContent>
             </Card>
@@ -192,18 +193,16 @@ export default function StudentMapPage() {
         {/* Loading */}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center z-30 bg-background/50 backdrop-blur-sm">
-            <Card className="mx-4 shadow-lg">
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Connecting to bus...</p>
+            <Card className="mx-4 shadow-md">
+              <CardContent className="p-5 text-center">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
+                <p className="text-sm text-muted-foreground">Connecting to bus...</p>
               </CardContent>
             </Card>
           </div>
         )}
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="map" userType="student" />
     </div>
   )
 }

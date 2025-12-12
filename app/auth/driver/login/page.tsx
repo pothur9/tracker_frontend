@@ -15,11 +15,15 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { validatePhoneNumber } from "@/lib/validation"
 import { Navbar } from "@/components/navbar"
+import { useLanguage } from "@/hooks/useLanguage"
+import { getTranslation } from "@/lib/translations"
+import { LanguageSelector } from "@/components/language-selector"
 
 export default function DriverLoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
+  const { language, setLanguage } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [phone, setPhone] = useState("")
 
@@ -102,32 +106,35 @@ export default function DriverLoginPage() {
       <div className="max-w-md mx-auto p-4 pt-8">
         <Card>
           <CardHeader className="text-center">
+            <div className="flex justify-end mb-2">
+              <LanguageSelector language={language} onLanguageChange={setLanguage} />
+            </div>
             <div className="mx-auto w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4">
               <MapPin className="h-8 w-8 text-accent" />
             </div>
-            <CardTitle className="text-2xl font-serif">Driver Login</CardTitle>
-            <CardDescription>Sign in to start sharing your location with students</CardDescription>
+            <CardTitle className="text-2xl font-serif">{getTranslation('driverLogin.title', language)}</CardTitle>
+            <CardDescription>{getTranslation('driverLogin.description', language)}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Phone Number */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">{getTranslation('studentLogin.phoneLabel', language)}</Label>
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Enter your phone number"
+                  placeholder={getTranslation('studentLogin.phonePlaceholder', language)}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   maxLength={10}
                   required
                 />
-                <p className="text-xs text-muted-foreground">10 digits starting with 6-9</p>
+                <p className="text-xs text-muted-foreground">{getTranslation('studentLogin.phoneHelper', language)}</p>
               </div>
 
               <div className="bg-primary/10 p-4 rounded-lg">
                 <p className="text-sm text-primary">
-                  <strong>Secure Login:</strong> We'll send a one-time password (OTP) to your phone number for verification.
+                  <strong>{getTranslation('studentLogin.secureLogin', language)}</strong> {getTranslation('studentLogin.secureLoginDesc', language)}
                 </p>
               </div>
 
@@ -141,10 +148,10 @@ export default function DriverLoginPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending OTP...
+                    {getTranslation('studentLogin.sendingOTP', language)}
                   </>
                 ) : (
-                  "Send OTP"
+                  getTranslation('studentLogin.sendOTP', language)
                 )}
               </Button>
             </form>
@@ -152,9 +159,9 @@ export default function DriverLoginPage() {
             <div className="mt-6 text-center">
               <div className="border-t pt-4">
                 <p className="text-sm text-muted-foreground">
-                  Don't have a driver account?{" "}
+                  {getTranslation('studentLogin.noAccount', language)}{" "}
                   <Link href="/auth/driver/signup" className="text-primary hover:underline">
-                    Sign up
+                    {getTranslation('studentLogin.signUp', language)}
                   </Link>
                 </p>
               </div>
