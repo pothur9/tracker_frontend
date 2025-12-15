@@ -337,7 +337,7 @@ export default function DriverDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex flex-col">
       {/* Navbar */}
       <Navbar />
       <TopNavigation activeTab="home" userType="driver" />
@@ -345,7 +345,7 @@ export default function DriverDashboard() {
       {/* Main Content */}
       <div className="flex-1 p-4 space-y-4">
         {/* Driver Details */}
-        <Card>
+        <Card className="bg-amber-50/80 border-amber-200">
           <CardHeader>
             <CardTitle>Driver Details</CardTitle>
           </CardHeader>
@@ -382,7 +382,7 @@ export default function DriverDashboard() {
         )}
 
         {/* Trip Control */}
-        <Card>
+        <Card className="bg-amber-50/80 border-amber-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Navigation className="h-5 w-5" />
@@ -395,20 +395,20 @@ export default function DriverDashboard() {
                 <Button
                   onClick={() => handleLocationToggle(true)}
                   disabled={isLoading}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white h-24 md:h-16 text-xl md:text-lg font-semibold"
                   size="lg"
                 >
-                  <Navigation className="h-5 w-5 mr-2" />
+                  <Navigation className="h-7 w-7 mr-2" />
                   Start Trip
                 </Button>
               ) : (
                 <Button
                   onClick={() => handleLocationToggle(false)}
                   disabled={isLoading && !isLocationSharing}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white h-24 md:h-16 text-xl md:text-lg font-semibold"
                   size="lg"
                 >
-                  <Power className="h-5 w-5 mr-2" />
+                  <Power className="h-7 w-7 mr-2" />
                   Stop Trip
                 </Button>
               )}

@@ -26,13 +26,13 @@ export default function StudentSignupPage() {
   const { language, setLanguage } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
-  const [schools, setSchools] = useState<Array<{ id: string; schoolName: string; district: string }>>([])
-  const [filteredSchools, setFilteredSchools] = useState<Array<{ id: string; schoolName: string }>>([])
+  const [schools, setSchools] = useState<Array<{ id: string; schoolName: string; district: string; schoolAddress: string }>>([])
+  const [filteredSchools, setFilteredSchools] = useState<Array<{ id: string; schoolName: string; schoolAddress: string }>>([])
+  const [selectedSchoolAddress, setSelectedSchoolAddress] = useState<string>("")
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("")
   const [selectedDistrict, setSelectedDistrict] = useState<string>("")
   const [districts, setDistricts] = useState<string[]>([])
   const [formData, setFormData] = useState({
-    city: "",
     schoolName: "",
     name: "",
     fatherName: "",
@@ -91,7 +91,7 @@ export default function StudentSignupPage() {
       try {
         const data = await api("/api/school")
         if (!cancelled) {
-          setSchools(Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName, district: s.district })) : [])
+          setSchools(Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName, district: s.district, schoolAddress: s.schoolAddress || "" })) : [])
         }
       } catch (e) {
         // ignore fetch errors for now; user can still type manually if needed
@@ -117,10 +117,6 @@ export default function StudentSignupPage() {
   }
 
   const validateStep1 = () => {
-    if (!formData.city.trim()) {
-      toast({ title: "Error", description: "Please enter your city", variant: "destructive" })
-      return false
-    }
     if (!formData.schoolName.trim()) {
       toast({ title: "Error", description: "Please select or enter your school", variant: "destructive" })
       return false
@@ -288,17 +284,6 @@ export default function StudentSignupPage() {
                     </Select>
                   </div>
 
-                  {/* City */}
-                  <div className="space-y-2">
-                    <Label htmlFor="city">{getTranslation('studentSignup.city', language)}</Label>
-                    <Input
-                      id="city"
-                      placeholder={getTranslation('studentSignup.city', language)}
-                      value={formData.city}
-                      onChange={(e) => handleInputChange("city", e.target.value)}
-                      required
-                    />
-                  </div>
 
                   {/* School Name */}
                   <div className="space-y-2">
@@ -310,6 +295,7 @@ export default function StudentSignupPage() {
                           setSelectedSchoolId(value)
                           const sel = filteredSchools.find((s) => s.id === value)
                           handleInputChange("schoolName", sel?.schoolName || "")
+                          setSelectedSchoolAddress(sel?.schoolAddress || "")
                         }}
                       >
                         <SelectTrigger>
@@ -336,6 +322,14 @@ export default function StudentSignupPage() {
                       />
                     )}
                   </div>
+
+                  {/* School Address Display */}
+                  {selectedSchoolAddress && (
+                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-1">School Address</p>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">{selectedSchoolAddress}</p>
+                    </div>
+                  )}
 
                   {/* Name */}
                   <div className="space-y-2">

@@ -133,7 +133,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex flex-col">
       <Navbar />
       <TopNavigation activeTab="home" userType="student" />
 
@@ -187,11 +187,11 @@ export default function StudentDashboard() {
         )}
 
         {/* Student Info Card */}
-        <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm mb-3">
+        <Card className="shadow-lg border-amber-200 bg-amber-50/90 backdrop-blur-sm mb-3">
           <CardContent className="p-4">
             {/* Header */}
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-md">
+              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
                 <User2 className="h-6 w-6 text-white" />
               </div>
               <div className="flex-1 min-w-0">
@@ -203,23 +203,22 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            {/* Info Grid */}
             <div className="grid grid-cols-2 gap-2">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg p-2.5">
-                <p className="text-xs font-medium text-blue-900/60 mb-0.5">Father's Name</p>
-                <p className="font-semibold text-sm text-blue-900 truncate">{user.fatherName || "N/A"}</p>
+              <div className="bg-gradient-to-br from-yellow-100 to-amber-100/50 rounded-lg p-2.5">
+                <p className="text-xs font-medium text-amber-900/60 mb-0.5">Father's Name</p>
+                <p className="font-semibold text-sm text-amber-900 truncate">{user.fatherName || "N/A"}</p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-lg p-2.5">
-                <p className="text-xs font-medium text-purple-900/60 mb-0.5">Phone</p>
-                <p className="font-semibold text-sm text-purple-900 truncate">{user.phone || "N/A"}</p>
+              <div className="bg-gradient-to-br from-orange-100 to-orange-100/50 rounded-lg p-2.5">
+                <p className="text-xs font-medium text-orange-900/60 mb-0.5">Phone</p>
+                <p className="font-semibold text-sm text-orange-900 truncate">{user.phone || "N/A"}</p>
               </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100/50 rounded-lg p-2.5">
-                <p className="text-xs font-medium text-green-900/60 mb-0.5">Bus Number</p>
-                <p className="font-semibold text-sm text-green-900">{user.busNumber || "N/A"}</p>
+              <div className="bg-gradient-to-br from-amber-100 to-yellow-100/50 rounded-lg p-2.5">
+                <p className="text-xs font-medium text-amber-900/60 mb-0.5">Bus Number</p>
+                <p className="font-semibold text-sm text-amber-900">{user.busNumber || "N/A"}</p>
               </div>
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-lg p-2.5">
-                <p className="text-xs font-medium text-orange-900/60 mb-0.5">City</p>
-                <p className="font-semibold text-sm text-orange-900 truncate">{user.city || "N/A"}</p>
+              <div className="bg-gradient-to-br from-yellow-100 to-amber-100/50 rounded-lg p-2.5">
+                <p className="text-xs font-medium text-amber-900/60 mb-0.5">City</p>
+                <p className="font-semibold text-sm text-amber-900 truncate">{user.city || "N/A"}</p>
               </div>
             </div>
           </CardContent>
@@ -227,7 +226,7 @@ export default function StudentDashboard() {
 
         {/* Map Preview Card */}
         <Card 
-          className="shadow-lg border-0 bg-white/95 backdrop-blur-sm cursor-pointer hover:shadow-xl transition-all duration-300 active:scale-[0.98] overflow-hidden"
+          className="shadow-lg border-amber-200 bg-amber-50/90 backdrop-blur-sm cursor-pointer hover:shadow-xl transition-all duration-300 active:scale-[0.98] overflow-hidden"
           onClick={() => router.push('/dashboard/student/map')}
         >
           <CardContent className="p-0">

@@ -26,8 +26,9 @@ export default function DriverSignupPage() {
   const { language, setLanguage } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
-  const [allSchools, setAllSchools] = useState<{ id: string; schoolName: string; district: string }[]>([])
-  const [filteredSchools, setFilteredSchools] = useState<{ id: string; schoolName: string }[]>([])
+  const [allSchools, setAllSchools] = useState<{ id: string; schoolName: string; district: string; schoolAddress: string }[]>([])
+  const [filteredSchools, setFilteredSchools] = useState<{ id: string; schoolName: string; schoolAddress: string }[]>([])
+  const [selectedSchoolAddress, setSelectedSchoolAddress] = useState<string>("")
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>("")
   const [selectedDistrict, setSelectedDistrict] = useState<string>("")
   const [districts, setDistricts] = useState<string[]>([])
@@ -57,7 +58,7 @@ export default function DriverSignupPage() {
       try {
         const data = await api("/api/school")
         if (!cancelled) {
-          setAllSchools(Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName, district: s.district })) : [])
+          setAllSchools(Array.isArray(data) ? data.map((s: any) => ({ id: s.id, schoolName: s.schoolName, district: s.district, schoolAddress: s.schoolAddress || "" })) : [])
         }
       } catch (e) {
         // ignore
@@ -257,6 +258,7 @@ export default function DriverSignupPage() {
                         const sel = filteredSchools.find((s: any) => s.id === value)
                         if (sel) {
                           handleInputChange("schoolName", sel.schoolName)
+                          setSelectedSchoolAddress(sel.schoolAddress || "")
                         }
                       }}
                     >
@@ -272,6 +274,14 @@ export default function DriverSignupPage() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* School Address Display */}
+                  {selectedSchoolAddress && (
+                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-1">School Address</p>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">{selectedSchoolAddress}</p>
+                    </div>
+                  )}
 
                   {/* Driver Name */}
                   <div className="space-y-2">
