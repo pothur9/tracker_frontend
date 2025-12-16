@@ -64,8 +64,8 @@ export function useFcm(jwt?: string) {
                 try {
                   const notificationOptions = {
                     body,
-                    icon: '/logo.jpg',
-                    badge: '/logo.jpg',
+                    icon: '/logo.jpeg',
+                    badge: '/logo.jpeg',
                     tag: 'ambari-notification',
                     requireInteraction: false,
                     vibrate: [200, 100, 200],

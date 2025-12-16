@@ -37,8 +37,8 @@ try {
     
     const notificationOptions = {
       body: body,
-      icon: '/logo.jpg',
-      badge: '/logo.jpg',
+      icon: '/logo.jpeg',
+      badge: '/logo.jpeg',
       tag: 'ambari-notification',
       requireInteraction: false,
       vibrate: [200, 100, 200],

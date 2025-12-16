@@ -21,7 +21,7 @@ export default function HomePage() {
           <div className="flex items-center justify-center gap-4 mb-4">
             <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-full overflow-hidden border-2 border-primary/20">
               <Image
-                src="/logo.jpg"
+                src="/logo.jpeg"
                 alt="Ambari Logo"
                 fill
                 className="object-cover"
