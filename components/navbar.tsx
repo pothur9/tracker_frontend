@@ -67,7 +67,7 @@ export function Navbar({ showBackButton = false, backUrl = "/" }: NavbarProps) {
   }, [user?.schoolId, user?.schoolName])
 
   return (
-    <header className="w-full border-b bg-gradient-to-r from-background via-background to-primary/5 shadow-sm sticky top-0 z-50">
+    <header className="w-full border-b bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 shadow-sm sticky top-0 z-50">
       {/* Trust Header */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 py-1.5 sm:py-1 text-center border-b border-primary/10">
         <p className="text-[10px] sm:text-xs text-muted-foreground font-medium tracking-wide px-2">
@@ -92,7 +92,7 @@ export function Navbar({ showBackButton = false, backUrl = "/" }: NavbarProps) {
           )}
           
           <Link href="/" className="flex items-center gap-2 sm:gap-3">
-            <div className="relative h-12 w-12 sm:h-11 sm:w-11 rounded-full overflow-hidden ring-2 ring-primary/20 shadow-md transition-transform hover:scale-105">
+            <div className="relative h-12 w-12 sm:h-11 sm:w-24 rounded-full overflow-hidden ring-2 ring-primary/20 shadow-md transition-transform hover:scale-105">
               <Image
                 src="/logo.jpeg"
                 alt="Ambari Logo"
@@ -101,26 +101,26 @@ export function Navbar({ showBackButton = false, backUrl = "/" }: NavbarProps) {
                 priority
               />
             </div>
-            <div className="flex flex-col">
+            {/* <div className="flex flex-col">
               <h1 className="text-lg sm:text-xl md:text-2xl font-serif font-bold text-foreground tracking-tight">
                 Ambari
               </h1>
               <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium -mt-0.5 hidden sm:block">
                 School Bus Tracking
               </p>
-            </div>
+            </div> */}
           </Link>
         </div>
 
         {/* Center Section - Animated Logo */}
         <div className="flex items-center justify-center flex-1">
-          <div className="relative h-10 w-24 sm:h-10 sm:w-20 lg:h-14 lg:w-28 rounded-full overflow-hidden ring-2 ring-primary/20 shadow-md">
+          <div className="relative h-28 w-80 sm:h-10 sm:w-20 lg:h-14 lg:w-28  overflow-hidden">
             <video
               autoPlay
               loop
               muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-contain"
             >
               <source src="/logo.mp4" type="video/mp4" />
             </video>

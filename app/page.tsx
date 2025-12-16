@@ -11,7 +11,7 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<"student" | "driver">("student")
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
       {/* Navbar */}
       <Navbar />
 
@@ -78,7 +78,7 @@ export default function HomePage() {
           </div>
 
           {/* Content Card */}
-          <Card className="border-2 shadow-xl">
+          <Card className="border-2 border-amber-200/60 bg-amber-50/30 shadow-xl">
             <CardHeader className="text-center space-y-2 pb-6">
               <div className="mx-auto mb-2">
                 <div

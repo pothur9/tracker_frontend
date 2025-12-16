@@ -244,11 +244,11 @@ export default function VerifyOTPPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
       <Navbar showBackButton backUrl={getBackUrl()} />
       
       <div className="max-w-md mx-auto p-4 pt-8">
-        <Card>
+        <Card className="border-amber-200/60 bg-amber-50/30">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               {currentData.type === "student" ? (

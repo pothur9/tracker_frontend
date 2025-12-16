@@ -6,7 +6,7 @@ import { Shield, Lock, Eye, Database, UserCheck, Bell } from "lucide-react"
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
       <Navbar showBackButton backUrl="/" />
       
       <main className="max-w-4xl mx-auto px-4 py-8 sm:px-6 sm:py-12">

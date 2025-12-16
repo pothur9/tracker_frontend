@@ -41,7 +41,7 @@ export function TopNavigation({ activeTab, userType }: TopNavigationProps) {
   ]
 
   return (
-    <nav className="bg-white border-b shadow-sm sticky top-0 z-50">
+    <nav className="bg-gradient-to-r from-orange-50 via-orange-100/50 to-orange-50 border-b border-orange-200/50 shadow-sm sticky top-0 z-50">
       <div className="flex items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const Icon = item.icon

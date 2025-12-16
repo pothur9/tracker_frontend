@@ -107,7 +107,7 @@ export default function StudentNotificationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex flex-col">
       {/* Navbar */}
       <Navbar showBackButton backUrl="/dashboard/student" />
       <TopNavigation activeTab="notifications" userType="student" />

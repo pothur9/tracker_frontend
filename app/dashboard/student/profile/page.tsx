@@ -109,7 +109,7 @@ export default function StudentProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 flex flex-col">
       {/* Navbar */}
       <Navbar showBackButton backUrl="/dashboard/student" />
       <TopNavigation activeTab="profile" userType="student" />
@@ -117,7 +117,7 @@ export default function StudentProfilePage() {
       {/* Content */}
       <div className="flex-1 p-4 space-y-6">
         {/* Profile Header */}
-        <Card>
+        <Card className="border-amber-200/60 bg-amber-50/30">
           <CardContent className="p-6 text-center">
             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <User className="h-10 w-10 text-primary" />
@@ -128,7 +128,7 @@ export default function StudentProfilePage() {
         </Card>
 
         {/* Personal Information */}
-        <Card>
+        <Card className="border-amber-200/60 bg-amber-50/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
@@ -189,7 +189,7 @@ export default function StudentProfilePage() {
         </Card>
 
         {/* School Information */}
-        <Card>
+        <Card className="border-amber-200/60 bg-amber-50/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <School className="h-5 w-5" />
@@ -271,7 +271,7 @@ export default function StudentProfilePage() {
         </Card>
 
         {/* Settings */}
-        <Card>
+        <Card className="border-amber-200/60 bg-amber-50/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />

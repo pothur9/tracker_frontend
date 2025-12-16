@@ -181,11 +181,11 @@ export default function DriverSignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50">
       <Navbar showBackButton backUrl="/" />
       
       <div className="max-w-md mx-auto w-full p-4 sm:p-6 pt-8">
-        <Card className="w-full">
+        <Card className="w-full border-amber-200/60 bg-amber-50/30">
           <CardHeader className="text-center pb-4 px-4 sm:px-6">
             <div className="flex justify-end mb-2">
               <LanguageSelector language={language} onLanguageChange={setLanguage} />
