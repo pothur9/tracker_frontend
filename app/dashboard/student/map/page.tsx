@@ -73,7 +73,7 @@ export default function StudentMapPage() {
     async function loadStops() {
       if (!user?.busNumber) return
       try {
-        const resp = await api(`/api/driver/stops?busNumber=${user.busNumber}`)
+        const resp = await api(`/api/driver/stops/public?busNumber=${user.busNumber}`)
         if (cancelled) return
         if (resp && Array.isArray(resp.stops)) {
           setStops(resp.stops.map((s: any) => ({ lat: s.lat, lng: s.lng, name: s.name, order: s.order })))

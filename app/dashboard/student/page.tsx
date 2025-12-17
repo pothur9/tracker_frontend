@@ -313,7 +313,7 @@ export default function StudentDashboard() {
             <Card className="mx-4 shadow-2xl border-0 max-w-md">
               <CardContent className="p-8 text-center">
                 <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-muted-foreground">Connecting to bus...</p>
+                <p className="text-muted-foreground">Loading...</p>
               </CardContent>
             </Card>
           </div>
