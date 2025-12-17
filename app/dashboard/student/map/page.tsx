@@ -196,7 +196,7 @@ export default function StudentMapPage() {
             <Card className="mx-4 shadow-md">
               <CardContent className="p-5 text-center">
                 <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
-                <p className="text-sm text-muted-foreground">Connecting to bus...</p>
+                <p className="text-sm text-muted-foreground">Loading...</p>
               </CardContent>
             </Card>
           </div>
