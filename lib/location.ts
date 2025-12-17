@@ -23,6 +23,41 @@ export interface Viewport {
 
 export const getCurrentLocation = (): Promise<Location> => {
   return new Promise((resolve, reject) => {
+    // Check if running in Android WebView with native location bridge
+    const androidBridge = (window as any).AndroidLocation
+
+    if (androidBridge && typeof androidBridge.getLocation === 'function') {
+      console.log('[Location] Using Android native location bridge')
+
+      try {
+        const result = androidBridge.getLocation()
+        const data = JSON.parse(result)
+
+        if (data.error) {
+          console.error('[Location] Android bridge error:', data.error)
+          // If permission not granted, try to request it
+          if (data.error.includes('permission') && typeof androidBridge.requestPermission === 'function') {
+            androidBridge.requestPermission()
+          }
+          reject(new Error(data.error))
+          return
+        }
+
+        console.log('[Location] Got location from Android:', data)
+        resolve({
+          latitude: data.latitude,
+          longitude: data.longitude,
+          timestamp: new Date(data.timestamp || Date.now()),
+          accuracy: data.accuracy,
+        })
+        return
+      } catch (e) {
+        console.error('[Location] Failed to parse Android location:', e)
+        // Fall through to browser geolocation
+      }
+    }
+
+    // Fall back to browser geolocation
     if (!navigator.geolocation) {
       reject(new Error("Geolocation is not supported"))
       return
@@ -93,7 +128,7 @@ export const ensureGeolocationReady = async (): Promise<void> => {
     try {
       const status = await navAny.permissions.query({ name: 'geolocation' })
       if (status?.state === 'denied') throw new Error('Location permission denied. Enable it in browser settings.')
-    } catch {}
+    } catch { }
   }
 }
 

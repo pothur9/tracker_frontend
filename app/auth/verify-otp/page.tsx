@@ -16,6 +16,27 @@ import { getFcmToken } from "@/lib/fcm"
 import { Navbar } from "@/components/navbar"
 import { useAuth } from "@/hooks/use-auth"
 
+/**
+ * Set Android app to use driver mode (WebView) or student mode (TWA)
+ * This is called when user logs in and tells Android which mode to use
+ */
+function setAndroidDriverMode(isDriver: boolean) {
+  // Check if running in Android app with access to preferences
+  const androidPrefs = (window as any).AndroidPrefs
+  if (androidPrefs && typeof androidPrefs.setDriverMode === 'function') {
+    console.log('[Android] Setting driver mode:', isDriver)
+    androidPrefs.setDriverMode(isDriver)
+    return true
+  }
+  
+  // Fallback: Store in localStorage for next launch detection
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('android_driver_mode', isDriver ? 'true' : 'false')
+    console.log('[Android] Driver mode stored in localStorage:', isDriver)
+  }
+  return false
+}
+
 export default function VerifyOTPPage() {
   const router = useRouter()
   const { toast } = useToast()
@@ -96,9 +117,13 @@ export default function VerifyOTPPage() {
 
           // Clear login data
           localStorage.removeItem("otpLoginData")
+          
+          // Set Android driver mode flag (tells app to use WebView for location)
+          const isDriver = loginData.type === "driver"
+          setAndroidDriverMode(isDriver)
 
           // Redirect based on user type
-          router.push(loginData.type === "student" ? "/dashboard/student" : "/dashboard/driver")
+          router.push(isDriver ? "/dashboard/driver" : "/dashboard/student")
         } 
         // Handle signup flow
         else if (signupData) {
@@ -144,9 +169,13 @@ export default function VerifyOTPPage() {
 
             // Clear signup data
             sessionStorage.removeItem("signupData")
+            
+            // Set Android driver mode flag (tells app to use WebView for location)
+            const isDriver = signupData.type === "driver"
+            setAndroidDriverMode(isDriver)
 
             // Redirect based on user type
-            router.push(signupData.type === "student" ? "/dashboard/student" : "/dashboard/driver")
+            router.push(isDriver ? "/dashboard/driver" : "/dashboard/student")
           } catch (signupError: any) {
             // Check if error is due to existing account
             const errorMessage = signupError?.message || signupError?.error || String(signupError)
