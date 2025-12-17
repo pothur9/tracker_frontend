@@ -24,16 +24,37 @@ function setAndroidDriverMode(isDriver: boolean) {
   // Check if running in Android app with access to preferences
   const androidPrefs = (window as any).AndroidPrefs
   if (androidPrefs && typeof androidPrefs.setDriverMode === 'function') {
-    console.log('[Android] Setting driver mode:', isDriver)
+    console.log('[Android] Setting driver mode via bridge:', isDriver)
     androidPrefs.setDriverMode(isDriver)
     return true
   }
   
-  // Fallback: Store in localStorage for next launch detection
+  // Store in localStorage
   if (typeof window !== 'undefined') {
     localStorage.setItem('android_driver_mode', isDriver ? 'true' : 'false')
     console.log('[Android] Driver mode stored in localStorage:', isDriver)
   }
+  
+  // If driver mode and running in Android WebView or TWA, trigger deep link
+  // This will restart the app in WebView mode for location support
+  if (isDriver && typeof window !== 'undefined') {
+    const userAgent = navigator.userAgent.toLowerCase()
+    const isAndroid = userAgent.includes('android')
+    const isInApp = userAgent.includes('trackerapp') || 
+                   userAgent.includes('wv') || 
+                   (window as any).AndroidLocation !== undefined ||
+                   document.referrer.includes('android-app')
+    
+    if (isAndroid) {
+      console.log('[Android] Detected Android - triggering driver mode deep link')
+      // Small delay to allow the current page to complete any saving
+      setTimeout(() => {
+        window.location.href = 'tracker://driver-mode'
+      }, 500)
+      return true
+    }
+  }
+  
   return false
 }
 
