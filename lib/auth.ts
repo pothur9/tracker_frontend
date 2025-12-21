@@ -104,32 +104,115 @@ export const getCurrentUser = (): User | null => {
   return userData ? JSON.parse(userData) : null
 }
 
-export const verifyOTP = async (sessionId: string, otp: string): Promise<boolean> => {
+export interface OTPVerificationResult {
+  success: boolean
+  error?: string
+  errorCode?: 'INVALID_OTP' | 'EXPIRED_OTP' | 'INVALID_SESSION' | 'NETWORK_ERROR' | 'UNKNOWN_ERROR'
+}
+
+export const verifyOTP = async (sessionId: string, otp: string): Promise<OTPVerificationResult> => {
   try {
     const verifyResponse = await fetch(
       `https://2factor.in/API/V1/3e5558da-7432-11ef-8b17-0200cd936042/SMS/VERIFY/${sessionId}/${otp}`
     )
     const verifyData = await verifyResponse.json()
-    return verifyData.Status === "Success"
+
+    if (verifyData.Status === "Success") {
+      return { success: true }
+    }
+
+    // Parse error details from 2factor API
+    const details = (verifyData.Details || '').toLowerCase()
+
+    if (details.includes('otp mismatch') || details.includes('invalid otp')) {
+      return {
+        success: false,
+        error: 'The OTP you entered is incorrect. Please check and try again.',
+        errorCode: 'INVALID_OTP'
+      }
+    }
+
+    if (details.includes('expired') || details.includes('session expired')) {
+      return {
+        success: false,
+        error: 'Your OTP has expired. Please request a new one.',
+        errorCode: 'EXPIRED_OTP'
+      }
+    }
+
+    if (details.includes('invalid') && details.includes('session')) {
+      return {
+        success: false,
+        error: 'Session expired. Please go back and try again.',
+        errorCode: 'INVALID_SESSION'
+      }
+    }
+
+    // Generic error fallback
+    return {
+      success: false,
+      error: verifyData.Details || 'OTP verification failed. Please try again.',
+      errorCode: 'UNKNOWN_ERROR'
+    }
   } catch (error) {
     console.error("Error verifying OTP:", error)
-    return false
+    return {
+      success: false,
+      error: 'Network error. Please check your internet connection and try again.',
+      errorCode: 'NETWORK_ERROR'
+    }
   }
 }
 
-export const sendOTP = async (phone: string): Promise<string | null> => {
+export interface SendOTPResult {
+  success: boolean
+  sessionId?: string
+  error?: string
+  errorCode?: 'INVALID_PHONE' | 'RATE_LIMITED' | 'NETWORK_ERROR' | 'UNKNOWN_ERROR'
+}
+
+export const sendOTP = async (phone: string): Promise<SendOTPResult> => {
   try {
     const otpResponse = await fetch(
       `https://2factor.in/API/V1/3e5558da-7432-11ef-8b17-0200cd936042/SMS/${phone}/AUTOGEN3/SVD`
     )
     const otpData = await otpResponse.json()
+
     if (otpData.Status === "Success") {
-      return otpData.Details // returns sessionId
+      return { success: true, sessionId: otpData.Details }
     }
-    return null
+
+    // Parse error details
+    const details = (otpData.Details || '').toLowerCase()
+
+    if (details.includes('invalid') && details.includes('mobile')) {
+      return {
+        success: false,
+        error: 'Invalid phone number. Please enter a valid 10-digit mobile number.',
+        errorCode: 'INVALID_PHONE'
+      }
+    }
+
+    if (details.includes('limit') || details.includes('exceeded') || details.includes('too many')) {
+      return {
+        success: false,
+        error: 'Too many OTP requests. Please wait a few minutes before trying again.',
+        errorCode: 'RATE_LIMITED'
+      }
+    }
+
+    return {
+      success: false,
+      error: otpData.Details || 'Failed to send OTP. Please try again.',
+      errorCode: 'UNKNOWN_ERROR'
+    }
   } catch (error) {
     console.error("Error sending OTP:", error)
-    return null
+    return {
+      success: false,
+      error: 'Network error. Please check your internet connection and try again.',
+      errorCode: 'NETWORK_ERROR'
+    }
   }
 }
 
