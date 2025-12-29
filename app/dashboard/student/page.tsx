@@ -4,12 +4,13 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Navigation, RefreshCw, Bus, Clock, User2 } from "lucide-react"
+import { MapPin, Navigation, RefreshCw, Bus, Clock, User2, CreditCard, CheckCircle } from "lucide-react"
 import { GoogleMap } from "@/components/google-map"
 import { TopNavigation } from "@/components/top-navigation"
 import { ConnectionStatus } from "@/components/connection-status"
 import { useAuth } from "@/hooks/use-auth"
 import { useRealTimeLocation } from "@/hooks/use-real-time-location"
+import { useSubscription } from "@/hooks/use-subscription"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api"
 import { Navbar } from "@/components/navbar"
@@ -19,6 +20,7 @@ export default function StudentDashboard() {
   const router = useRouter()
   const [schoolCoords, setSchoolCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [driverStatus, setDriverStatus] = useState<{ isActive: boolean; driverName?: string } | null>(null)
+  const { hasActiveSubscription, subscription } = useSubscription()
 
   const {
     location: driverLocation,
@@ -220,6 +222,43 @@ export default function StudentDashboard() {
                 <p className="text-xs font-medium text-amber-900/60 mb-0.5">City</p>
                 <p className="font-semibold text-sm text-amber-900 truncate">{user.city || "N/A"}</p>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Subscription Status Card */}
+        <Card className={`shadow-lg mb-3 ${hasActiveSubscription ? 'border-green-200 bg-green-50/90' : 'border-amber-200 bg-amber-50/90'} backdrop-blur-sm`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 ${hasActiveSubscription ? 'bg-gradient-to-br from-green-500 to-emerald-600' : 'bg-gradient-to-br from-amber-500 to-orange-600'} rounded-xl flex items-center justify-center shadow-md`}>
+                  {hasActiveSubscription ? (
+                    <CheckCircle className="h-6 w-6 text-white" />
+                  ) : (
+                    <CreditCard className="h-6 w-6 text-white" />
+                  )}
+                </div>
+                <div>
+                  <p className={`font-bold text-sm ${hasActiveSubscription ? 'text-green-800' : 'text-amber-800'}`}>
+                    {hasActiveSubscription ? 'Subscription Active' : 'Subscription Required'}
+                  </p>
+                  <p className={`text-xs ${hasActiveSubscription ? 'text-green-700' : 'text-amber-700'}`}>
+                    {hasActiveSubscription && subscription ? `${subscription.daysRemaining} days remaining` : 'Subscribe to track bus'}
+                  </p>
+                </div>
+              </div>
+              {!hasActiveSubscription && (
+                <Button
+                  size="sm"
+                  onClick={() => router.push('/subscription')}
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                >
+                  Subscribe
+                </Button>
+              )}
+              {hasActiveSubscription && (
+                <Badge className="bg-green-200 text-green-800">Active</Badge>
+              )}
             </div>
           </CardContent>
         </Card>

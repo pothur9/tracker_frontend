@@ -138,23 +138,24 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
       mapInstanceRef.current = new window.google.maps.Map(mapRef.current, {
         zoom: initialZoom ?? 17,
         center,
+        // Use Google's 3D photorealistic map ID for light theme with 3D buildings
+        mapId: "6ff586e93e18149f",
+        // Enable 3D view with tilt
+        tilt: 45,
+        heading: 0,
+        // Light theme styles - clean and minimal
         styles: [
-          { elementType: "geometry", stylers: [{ color: "#1f2937" }] },
-          { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-          { elementType: "labels.text.fill", stylers: [{ color: "#9aa0a6" }] },
-          { elementType: "labels.text.stroke", stylers: [{ color: "#1f2937" }] },
           { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
-          { featureType: "road", elementType: "geometry", stylers: [{ color: "#374151" }] },
-          { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#111827" }] },
-          { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9aa0a6" }] },
           { featureType: "transit", stylers: [{ visibility: "off" }] },
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#111827" }] },
         ],
         disableDefaultUI: true,
         zoomControl: true,
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
+        // Enable rotation and tilt controls for 3D navigation
+        rotateControl: true,
+        tiltControl: true,
       })
 
       // Mark that the user has adjusted the view if they zoom or drag

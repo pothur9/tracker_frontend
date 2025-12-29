@@ -395,20 +395,20 @@ export default function DriverDashboard() {
                 <Button
                   onClick={() => handleLocationToggle(true)}
                   disabled={isLoading}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white h-24 md:h-16 text-xl md:text-lg font-semibold"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white !h-96 md:!h-16 text-2xl md:text-lg font-bold rounded-2xl shadow-lg"
                   size="lg"
                 >
-                  <Navigation className="h-7 w-7 mr-2" />
+                  <Navigation className="h-10 w-10 mr-3" />
                   Start Trip
                 </Button>
               ) : (
                 <Button
                   onClick={() => handleLocationToggle(false)}
                   disabled={isLoading && !isLocationSharing}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white h-24 md:h-16 text-xl md:text-lg font-semibold"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white !h-96 md:!h-16 text-2xl md:text-lg font-bold rounded-2xl shadow-lg"
                   size="lg"
                 >
-                  <Power className="h-7 w-7 mr-2" />
+                  <Power className="h-10 w-10 mr-3" />
                   Stop Trip
                 </Button>
               )}
