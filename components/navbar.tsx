@@ -77,7 +77,7 @@ export function Navbar({ showBackButton = false, backUrl = "/" }: NavbarProps) {
       <div className="flex items-center justify-between gap-1 sm:gap-2 md:gap-4 px-2 sm:px-4 md:px-6 lg:px-8 py-2.5 sm:py-3 md:py-3.5 max-w-7xl mx-auto">
         
         {/* Left Section - Logo + Back */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 pl-2 sm:pl-4 md:pl-6">
           {showBackButton && (
             <Link href={backUrl}>
               <Button
@@ -100,41 +100,19 @@ export function Navbar({ showBackButton = false, backUrl = "/" }: NavbarProps) {
                 priority
               />
             </div>
+            <span className="text-lg sm:text-xl md:text-2xl font-bold text-black">
+              Ambari
+            </span>
           </Link>
         </div>
 
-        {/* Center Section - Large Responsive Video */}
-<div className="flex items-center justify-center flex-1 px-1 sm:px-4 md:px-6">
-  <div
-    className="
-      relative 
-      w-full                     /* full width on all screens */
-      aspect-[16/3.5]            /* wider aspect ratio for bigger display */
-      sm:aspect-[16/3]           /* slightly taller on tablets */
-      md:aspect-[16/2.5]         /* even taller on desktop */
-      max-h-[90px]               /* larger max height on mobile */
-      sm:max-h-[110px]           /* larger on tablets */
-      md:max-h-[140px]           /* much larger on desktop */
-      overflow-hidden
-      rounded-md                 /* subtle rounded corners */
-    "
-  >
-    <video
-      autoPlay
-      loop
-      muted
-      playsInline
-      className="absolute inset-0 w-full h-full object-contain scale-105"
-    >
-      <source src="/logo.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
+        {/* Spacer for layout balance */}
+        <div className="flex-1" />
 
 
         {/* Right Section - School Logo */}
         {user && (user.type === "student" || user.type === "driver") && schoolLogo ? (
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 pr-2 sm:pr-4 md:pr-6">
             <div className="hidden md:flex flex-col items-end">
               <p className="text-xs font-medium text-muted-foreground">School</p>
               {schoolName && (

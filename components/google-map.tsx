@@ -31,6 +31,8 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
   const markerRef = useRef<any>(null)
+  const markerElementRef = useRef<HTMLDivElement | null>(null)
+  const busRotationRef = useRef<number>(0)
   const lastPositionRef = useRef<{ lat: number; lng: number } | null>(null)
   const schoolMarkerRef = useRef<any>(null)
   const routeLineRef = useRef<any>(null)
@@ -57,6 +59,7 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
           window.google.maps.importLibrary("maps"),
           window.google.maps.importLibrary("routes"),
           window.google.maps.importLibrary("geometry"),
+          window.google.maps.importLibrary("marker"),
         ])
           .then(() => setIsLoaded(true))
           .catch(() => setIsLoaded(true))
@@ -88,7 +91,7 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
         "Google Maps API key is missing. Create frontend/.env.local with NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=<YOUR_KEY> (ensure it starts with 'AIza') and restart the dev server."
       )
     }
-    const src = `https://maps.googleapis.com/maps/api/js?key=${apiKey || ""}&v=quarterly&loading=async&libraries=maps,routes,geometry`
+    const src = `https://maps.googleapis.com/maps/api/js?key=${apiKey || ""}&v=quarterly&loading=async&libraries=maps,routes,geometry,marker`
     const script = document.createElement("script")
     script.id = "google-maps-script"
     script.src = src
@@ -104,6 +107,7 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
             window.google.maps.importLibrary("maps"),
             window.google.maps.importLibrary("routes"),
             window.google.maps.importLibrary("geometry"),
+            window.google.maps.importLibrary("marker"),
           ])
             .then(() => setIsLoaded(true))
             .catch(() => setIsLoaded(true))
@@ -220,20 +224,16 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
 
     // Ensure marker exists once
     if (!markerRef.current) {
-      const initialIcon = {
-        path: "M12 2C13.1 2 14 2.9 14 4V6H18C18.55 6 19 6.45 19 7V17H17.5C17.5 18.38 16.38 19.5 15 19.5S12.5 18.38 12.5 17H7.5C7.5 18.38 6.38 19.5 5 19.5S2.5 18.38 2.5 17H1V7C1 6.45 1.45 6 2 6H6V4C6 2.9 6.9 2 8 2H12M8 4V6H12V4H8M6 8V10H8V8H6M10 8V10H12V8H10M14 8V10H16V8H14M18 8V10H20V8H18M5 15.5C5.83 15.5 6.5 16.17 6.5 17S5.83 18.5 5 18.5 3.5 17.83 3.5 17 4.17 15.5 5 15.5M15 15.5C15.83 15.5 16.5 16.17 16.5 17S15.83 18.5 15 18.5 13.5 17.83 13.5 17 14.17 15.5 15 15.5Z",
-        fillColor: "#FDB813", // Yellow school bus color
-        fillOpacity: 1,
-        strokeColor: "#000000", // Black outline for better visibility
-        strokeWeight: 2,
-        scale: 1.8, // Slightly larger for better visibility
-        anchor: new window.google.maps.Point(12, 12),
-        rotation: 0,
+      // Indian School Bus - Using PNG image
+      const busIcon = {
+        url: '/school-bus.png',
+        scaledSize: new window.google.maps.Size(50, 50),
+        anchor: new window.google.maps.Point(25, 25),
       }
       markerRef.current = new window.google.maps.Marker({
         position,
         map: mapInstanceRef.current,
-        icon: initialIcon,
+        icon: busIcon,
         title: `Bus ${driverLocation.busNumber}`,
       })
       if (isValidLatLng(position.lat, position.lng)) {
@@ -248,29 +248,12 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
     const end = position
     const duration = 900 // ms
     const startTime = performance.now()
-    const bearing = computeBearing(start, end)
 
     const animate = (now: number) => {
       const t = Math.min(1, (now - startTime) / duration)
       const lat = start.lat + (end.lat - start.lat) * t
       const lng = start.lng + (end.lng - start.lng) * t
       markerRef.current.setPosition({ lat, lng })
-      
-      // Get the current icon and create a new one with updated rotation
-      const currentIcon = markerRef.current.getIcon()
-      if (currentIcon && typeof currentIcon === 'object') {
-        const newIcon = {
-          path: currentIcon.path,
-          fillColor: currentIcon.fillColor,
-          fillOpacity: currentIcon.fillOpacity,
-          strokeColor: currentIcon.strokeColor,
-          strokeWeight: currentIcon.strokeWeight,
-          scale: currentIcon.scale,
-          anchor: currentIcon.anchor,
-          rotation: bearing,
-        }
-        markerRef.current.setIcon(newIcon)
-      }
       
       if (t < 1) {
         requestAnimationFrame(animate)
@@ -295,15 +278,11 @@ export function GoogleMap({ className, driverLocation, onLocationSelect, schoolL
     if (schoolLocation && isValidLatLng(schoolLocation.lat, schoolLocation.lng)) {
       const position = { lat: schoolLocation.lat, lng: schoolLocation.lng }
       if (!schoolMarkerRef.current) {
-        // School building icon with triangular roof and multiple windows
+        // Indian School icon - realistic Indian school building image
         const schoolIcon = {
-          path: "M12 1L3 7v1h1v11h5v-4h4v4h5V8h1V7L12 1zM7 15H5v-2h2v2zm0-3H5v-2h2v2zm5 3h-2v-2h2v2zm0-3h-2v-2h2v2zm5 3h-2v-2h2v2zm0-3h-2v-2h2v2z",
-          fillColor: "#dc2626", // Darker red for school
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2.5,
-          scale: 2.2,
-          anchor: new window.google.maps.Point(12, 19),
+          url: '/indian-school.png',
+          scaledSize: new window.google.maps.Size(60, 60),
+          anchor: new window.google.maps.Point(30, 55),
         }
         schoolMarkerRef.current = new window.google.maps.Marker({
           position,

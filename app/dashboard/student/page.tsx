@@ -139,7 +139,25 @@ export default function StudentDashboard() {
       <Navbar />
       <TopNavigation activeTab="home" userType="student" />
 
-      <div className="flex-1 overflow-auto px-3 py-4">{/* Removed map background for cleaner mobile view */}
+      {/* Hero Video Section */}
+      <div className="px-3 pt-4">
+        <div className="relative w-full overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-br from-amber-100 via-orange-50 to-yellow-100 border border-amber-200/50">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-white/20 pointer-events-none z-10" />
+          <div className="relative aspect-[16/7] sm:aspect-[16/6] md:aspect-[16/5]">
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-contain p-2"
+            >
+              <source src="/logo.mp4" type="video/mp4" />
+            </video>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto px-3 py-4">{/* Main content area */}
 
         {/* Bus Status Card - Top */}
         {/* {driverLocation && connectionStatus.isConnected && (
@@ -207,7 +225,7 @@ export default function StudentDashboard() {
 
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-gradient-to-br from-yellow-100 to-amber-100/50 rounded-lg p-2.5">
-                <p className="text-xs font-medium text-amber-900/60 mb-0.5">Father's Name</p>
+                <p className="text-xs font-medium text-amber-900/60 mb-0.5">Father's / Mother's / Guardian's Name</p>
                 <p className="font-semibold text-sm text-amber-900 truncate">{user.fatherName || "N/A"}</p>
               </div>
               <div className="bg-gradient-to-br from-orange-100 to-orange-100/50 rounded-lg p-2.5">
@@ -264,12 +282,12 @@ export default function StudentDashboard() {
         </Card>
 
         {/* Map Preview Card */}
-        <Card 
+        {/* <Card 
           className="shadow-lg border-amber-200 bg-amber-50/90 backdrop-blur-sm cursor-pointer hover:shadow-xl transition-all duration-300 active:scale-[0.98] overflow-hidden"
           onClick={() => router.push('/dashboard/student/map')}
         >
           <CardContent className="p-0">
-            {/* Map Preview Section */}
+         
             <div className="relative h-32 bg-gradient-to-br from-green-50 to-teal-50">
               {driverLocation && connectionStatus.isConnected ? (
                 <div className="absolute inset-0">
@@ -279,7 +297,7 @@ export default function StudentDashboard() {
                     initialZoom={13}
                     className="w-full h-full pointer-events-none"
                   />
-                  {/* Overlay gradient for better text visibility */}
+                 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                 </div>
               ) : (
@@ -291,7 +309,7 @@ export default function StudentDashboard() {
               )}
             </div>
             
-            {/* Info Section */}
+          
             <div className="p-3.5 flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <h4 className="font-bold text-sm">View Live Map</h4>
@@ -304,7 +322,7 @@ export default function StudentDashboard() {
               <Navigation className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Driver Inactive */}
         {driverStatus && !driverStatus.isActive && (

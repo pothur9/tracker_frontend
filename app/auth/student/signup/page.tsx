@@ -126,7 +126,7 @@ export default function StudentSignupPage() {
       return false
     }
     if (!formData.fatherName.trim()) {
-      toast({ title: "Error", description: "Please enter father's name", variant: "destructive" })
+      toast({ title: "Error", description: "Please enter father's / mother's / guardian's name", variant: "destructive" })
       return false
     }
     if (!formData.gender) {
@@ -343,7 +343,7 @@ export default function StudentSignupPage() {
                     />
                   </div>
 
-                  {/* Father Name */}
+                  {/* Father's / Mother's / Guardian's Name */}
                   <div className="space-y-2">
                     <Label htmlFor="fatherName">{getTranslation('studentSignup.fatherName', language)}</Label>
                     <Input

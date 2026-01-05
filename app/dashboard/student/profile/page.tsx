@@ -148,7 +148,7 @@ export default function StudentProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fatherName">Father's Name</Label>
+                <Label htmlFor="fatherName">Father's / Mother's / Guardian's Name</Label>
                 <Input
                   id="fatherName"
                   value={formData.fatherName}
@@ -207,7 +207,7 @@ export default function StudentProfilePage() {
               />
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="city">City</Label>
               <Input
                 id="city"
@@ -215,7 +215,7 @@ export default function StudentProfilePage() {
                 onChange={(e) => handleInputChange("city", e.target.value)}
                 disabled={!isEditing}
               />
-            </div>
+            </div> */}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -272,14 +272,14 @@ export default function StudentProfilePage() {
 
         {/* Settings */}
         <Card className="border-amber-200/60 bg-amber-50/30">
-          <CardHeader>
+          {/* <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
               Settings
             </CardTitle>
-          </CardHeader>
+          </CardHeader> */}
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {theme === "dark" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
                 <span>Dark Mode</span>
@@ -299,9 +299,9 @@ export default function StudentProfilePage() {
                 <MapPin className="h-4 w-4 mr-2" />
                 Notification Settings
               </Button>
-            </div>
+            </div> */}
 
-            <Separator />
+            {/* <Separator /> */}
 
             <Button variant="destructive" className="w-full" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
