@@ -91,7 +91,7 @@ export function Navbar({ showBackButton = false, backUrl = "/" }: NavbarProps) {
           )}
 
           <Link href="/" className="flex items-center gap-2 sm:gap-3">
-            <div className="relative h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-full overflow-hidden ring-2 ring-primary/20 shadow-md">
+            <div className="relative h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 rounded-full overflow-hidden ring-2 ring-primary/20 shadow-md">
               <Image
                 src="/logo.jpeg"
                 alt="Ambari Logo"
@@ -110,18 +110,17 @@ export function Navbar({ showBackButton = false, backUrl = "/" }: NavbarProps) {
         <div className="flex-1" />
 
 
-        {/* Right Section - School Logo */}
+        {/* Right Section - School Name + Logo */}
         {user && (user.type === "student" || user.type === "driver") && schoolLogo ? (
-          <div className="flex items-center gap-1 sm:gap-2 pr-2 sm:pr-4 md:pr-6">
-            <div className="hidden md:flex flex-col items-end">
-              <p className="text-xs font-medium text-muted-foreground">School</p>
-              {schoolName && (
-                <p className="text-[10px] text-muted-foreground truncate max-w-[120px]">
-                  {schoolName}
-                </p>
-              )}
-            </div>
-            <div className="relative h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-full overflow-hidden ring-2 ring-primary/20 shadow-md shrink-0">
+          <div className="flex items-center gap-3 sm:gap-4 pr-2 sm:pr-4 md:pr-6">
+            {/* School Name - Bold, before logo */}
+            {schoolName && (
+              <span className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-black truncate max-w-[120px] sm:max-w-[180px] md:max-w-[250px] px-2 sm:px-3 py-1">
+                {schoolName}
+              </span>
+            )}
+            {/* School Logo */}
+            <div className="relative h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 lg:h-24 lg:w-24 rounded-full overflow-hidden ring-2 ring-primary/20 shadow-md shrink-0">
               <Image
                 src={schoolLogo}
                 alt={schoolName || "School Logo"}
