@@ -276,6 +276,18 @@ export default function PrivacyPage() {
                   You may request deletion of your account and associated data by contacting our 
                   support team. Some information may be retained for legal or legitimate business purposes.
                 </p>
+                <p className="text-muted-foreground leading-relaxed mt-2">
+                  Deletion request pages:
+                  <span className="ml-1">
+                    <a href="/delete-account/student" className="text-primary hover:underline">
+                      Student
+                    </a>
+                    <span className="mx-2">|</span>
+                    <a href="/delete-account/driver" className="text-primary hover:underline">
+                      Driver
+                    </a>
+                  </span>
+                </p>
               </div>
 
               <div>
@@ -320,6 +332,9 @@ export default function PrivacyPage() {
                 Our service is designed for use by students and their parents/guardians. We do not 
                 knowingly collect personal information from children under 13 without parental consent. 
                 Student accounts should be managed by parents or guardians.
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                Read our <a href="/child-safety" className="text-primary hover:underline">Child Safety & Protection Policy</a>.
               </p>
             </CardContent>
           </Card>

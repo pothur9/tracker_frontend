@@ -107,6 +107,59 @@ export default function HomePage() {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="w-full border-t border-amber-200/60 bg-amber-50/50 py-6 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto space-y-4">
+          {/* Account Deletion Links */}
+          <div className="text-center">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+              Account Deletion
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/delete-account/driver"
+                className="text-xs text-primary hover:underline"
+              >
+                Delete Driver Account
+              </Link>
+              <span className="text-muted-foreground/40 text-xs">|</span>
+              <Link
+                href="/delete-account/student"
+                className="text-xs text-primary hover:underline"
+              >
+                Delete Student Account
+              </Link>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-amber-200/40" />
+
+          {/* Legal & Policy Links */}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <Link href="/child-safety" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">
+              Child Safety
+            </Link>
+            <span className="text-muted-foreground/40 text-xs">·</span>
+            <Link href="/privacy" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">
+              Privacy Policy
+            </Link>
+            <span className="text-muted-foreground/40 text-xs">·</span>
+            <Link href="/terms-conditions" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">
+              Terms &amp; Conditions
+            </Link>
+            <span className="text-muted-foreground/40 text-xs">·</span>
+            <Link href="/contact" className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">
+              Contact
+            </Link>
+          </div>
+
+          <p className="text-center text-[10px] text-muted-foreground/60">
+            © {new Date().getFullYear()} Ambari. Managed by the Sri Adavi Thatha Seva Trust.
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }
